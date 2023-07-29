@@ -55,7 +55,7 @@ export class RendererCanvas2d {
     this.scatterGL = new scatter.ScatterGL(this.scatterGLEl, {
       'rotateOnStart': true,
       'selectEnabled': false,
-      'styles': {polyline: {defaultOpacity: 1, deselectedOpacity: 1}}
+      'styles': { polyline: { defaultOpacity: 1, deselectedOpacity: 1 } }
     });
     this.scatterGLHasInitialized = false;
     this.videoWidth = canvas.width;
@@ -69,11 +69,11 @@ export class RendererCanvas2d {
     this.ctx.scale(-1, 1);
 
     this.scatterGLEl.style =
-        `width: ${videoWidth}px; height: ${videoHeight}px;`;
+      `width: ${videoWidth}px; height: ${videoHeight}px;`;
     this.scatterGL.resize();
 
     this.scatterGLEl.style.display =
-        params.STATE.modelConfig.render3D ? 'inline-block' : 'none';
+      params.STATE.modelConfig.render3D ? 'inline-block' : 'none';
   }
 
   draw(rendererParams) {
@@ -112,12 +112,77 @@ export class RendererCanvas2d {
    */
   drawResult(pose) {
     if (pose.keypoints != null) {
-      this.drawKeypoints(pose.keypoints);
-      this.drawSkeleton(pose.keypoints, pose.id);
+      this.drawKneepoints(pose.keypoints, pose.id);
+      // this.drawKeypoints(pose.keypoints);
+      // this.drawSkeleton(pose.keypoints, pose.id);
     }
     if (pose.keypoints3D != null && params.STATE.modelConfig.render3D) {
       this.drawKeypoints3D(pose.keypoints3D);
     }
+  }
+
+  calculateAngle(point1, point2, point3) {
+    // Calculate the vectors between the points
+    const vector1 = [point2.x - point1.x, point2.y - point1.y];
+    const vector2 = [point2.x - point3.x, point2.y - point3.y];
+
+    // Calculate the dot product of the two vectors
+    const dotProduct = vector1[0] * vector2[0] + vector1[1] * vector2[1];
+
+    // Calculate the magnitudes of the vectors
+    const magnitude1 = Math.sqrt(vector1[0] ** 2 + vector1[1] ** 2);
+    const magnitude2 = Math.sqrt(vector2[0] ** 2 + vector2[1] ** 2);
+
+    // Calculate the cosine of the angle using the dot product and magnitudes
+    const cosineAngle = dotProduct / (magnitude1 * magnitude2);
+
+    // Calculate the angle in radians
+    const angleRad = Math.acos(cosineAngle);
+
+    // Convert the angle from radians to degrees
+    const angleDeg = (180 / Math.PI) * angleRad;
+
+    return angleDeg;
+  }
+
+  drawKneepoints(keypoints) {
+    const sumScores = (pts) => pts.reduce((base, acc) => base + acc.score, 0);
+
+    const drawLine = (kp1, kp2) => {
+      this.ctx.beginPath();
+      this.ctx.moveTo(kp1.x, kp1.y);
+      this.ctx.lineTo(kp2.x, kp2.y);
+      this.ctx.stroke();
+    };
+
+    const left_knee_points = keypoints.filter((point) => {
+      return (['left_hip', 'left_knee', 'left_ankle'].includes(point.name))
+    });
+
+    const right_knee_points = keypoints.filter((point) => {
+      return (['right_hip', 'right_knee', 'right_ankle'].includes(point.name))
+    });
+
+    let pts = left_knee_points;
+    if (sumScores(left_knee_points) < sumScores(right_knee_points)) {
+      pts = right_knee_points;
+    }
+
+    if (sumScores(pts) < (params.STATE.modelConfig.scoreThreshold * 3)) {
+      return;
+    }
+
+    this.ctx.fillStyle = 'Red';
+    this.ctx.strokeStyle = 'White';
+    this.ctx.lineWidth = params.DEFAULT_LINE_WIDTH;
+
+    this.ctx.fillStyle = 'Green';
+    for (const pt of pts) {
+      this.drawKeypoint(pt);
+    }
+
+    drawLine(pts[0], pts[1]);
+    drawLine(pts[1], pts[2]);
   }
 
   /**
@@ -126,7 +191,7 @@ export class RendererCanvas2d {
    */
   drawKeypoints(keypoints) {
     const keypointInd =
-        posedetection.util.getKeypointIndexBySide(params.STATE.model);
+      posedetection.util.getKeypointIndexBySide(params.STATE.model);
     this.ctx.fillStyle = 'Red';
     this.ctx.strokeStyle = 'White';
     this.ctx.lineWidth = params.DEFAULT_LINE_WIDTH;
@@ -166,15 +231,15 @@ export class RendererCanvas2d {
   drawSkeleton(keypoints, poseId) {
     // Each poseId is mapped to a color in the color palette.
     const color = params.STATE.modelConfig.enableTracking && poseId != null ?
-        COLOR_PALETTE[poseId % 20] :
-        'White';
+      COLOR_PALETTE[poseId % 20] :
+      'White';
     this.ctx.fillStyle = color;
     this.ctx.strokeStyle = color;
     this.ctx.lineWidth = params.DEFAULT_LINE_WIDTH;
 
     posedetection.util.getAdjacentPairs(params.STATE.model).forEach(([
-                                                                      i, j
-                                                                    ]) => {
+      i, j
+    ]) => {
       const kp1 = keypoints[i];
       const kp2 = keypoints[j];
 
@@ -195,13 +260,13 @@ export class RendererCanvas2d {
   drawKeypoints3D(keypoints) {
     const scoreThreshold = params.STATE.modelConfig.scoreThreshold || 0;
     const pointsData =
-        keypoints.map(keypoint => ([-keypoint.x, -keypoint.y, -keypoint.z]));
+      keypoints.map(keypoint => ([-keypoint.x, -keypoint.y, -keypoint.z]));
 
     const dataset =
-        new scatter.ScatterGL.Dataset([...pointsData, ...ANCHOR_POINTS]);
+      new scatter.ScatterGL.Dataset([...pointsData, ...ANCHOR_POINTS]);
 
     const keypointInd =
-        posedetection.util.getKeypointIndexBySide(params.STATE.model);
+      posedetection.util.getKeypointIndexBySide(params.STATE.model);
     this.scatterGL.setPointColorer((i) => {
       if (keypoints[i] == null || keypoints[i].score < scoreThreshold) {
         // hide anchor points and low-confident points.
@@ -224,7 +289,7 @@ export class RendererCanvas2d {
       this.scatterGL.updateDataset(dataset);
     }
     const connections = posedetection.util.getAdjacentPairs(params.STATE.model);
-    const sequences = connections.map(pair => ({indices: pair}));
+    const sequences = connections.map(pair => ({ indices: pair }));
     this.scatterGL.setSequences(sequences);
     this.scatterGLHasInitialized = true;
   }

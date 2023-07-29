@@ -32,7 +32,7 @@ const stringValueMap = {};
 let backendFolder;
 
 export async function setupDatGui(urlParams) {
-  const gui = new dat.GUI({width: 300});
+  const gui = new dat.GUI({ width: 300, closeOnTop: true });
   gui.domElement.id = 'gui';
 
   // The camera folder contains options for video settings.
@@ -42,7 +42,7 @@ export async function setupDatGui(urlParams) {
     params.STATE.isTargetFPSChanged = true;
   });
   const sizeController = cameraFolder.add(
-      params.STATE.camera, 'sizeOption', Object.keys(params.VIDEO_SIZE));
+    params.STATE.camera, 'sizeOption', Object.keys(params.VIDEO_SIZE));
   sizeController.onChange(_ => {
     params.STATE.isSizeOptionChanged = true;
   });
@@ -79,7 +79,7 @@ export async function setupDatGui(urlParams) {
   }
 
   const modelController = modelFolder.add(
-      params.STATE, 'model', Object.values(posedetection.SupportedModels));
+    params.STATE, 'model', Object.values(posedetection.SupportedModels));
 
   modelController.onChange(_ => {
     params.STATE.isModelChanged = true;
@@ -97,6 +97,7 @@ export async function setupDatGui(urlParams) {
   showBackendConfigs(backendFolder);
 
   backendFolder.open();
+  gui.close();
 
   return gui;
 }
@@ -109,16 +110,16 @@ export async function showBackendConfigs(folderController) {
   const fixedSelectionCount = 0;
   while (folderController.__controllers.length > fixedSelectionCount) {
     folderController.remove(
-        folderController
-            .__controllers[folderController.__controllers.length - 1]);
+      folderController
+        .__controllers[folderController.__controllers.length - 1]);
   }
   const backends = params.MODEL_BACKEND_MAP[params.STATE.model];
-  if(params.STATE.backend == null) {
+  if (params.STATE.backend == null) {
     // The first element of the array is the default backend for the model.
     params.STATE.backend = backends[0];
   }
   const backendController =
-      folderController.add(params.STATE, 'backend', backends);
+    folderController.add(params.STATE, 'backend', backends);
   backendController.name('runtime-backend');
   backendController.onChange(async backend => {
     params.STATE.isBackendChanged = true;
@@ -134,8 +135,8 @@ function showModelConfigs(folderController, type) {
   const fixedSelectionCount = 1;
   while (folderController.__controllers.length > fixedSelectionCount) {
     folderController.remove(
-        folderController
-            .__controllers[folderController.__controllers.length - 1]);
+      folderController
+        .__controllers[folderController.__controllers.length - 1]);
   }
 
   switch (params.STATE.model) {
@@ -156,7 +157,7 @@ function showModelConfigs(folderController, type) {
 // The PoseNet model config folder contains options for PoseNet config
 // settings.
 function addPoseNetControllers(modelConfigFolder) {
-  params.STATE.modelConfig = {...params.POSENET_CONFIG};
+  params.STATE.modelConfig = { ...params.POSENET_CONFIG };
 
   modelConfigFolder.add(params.STATE.modelConfig, 'maxPoses', [1, 2, 3, 4, 5]);
   modelConfigFolder.add(params.STATE.modelConfig, 'scoreThreshold', 0, 1);
@@ -165,8 +166,8 @@ function addPoseNetControllers(modelConfigFolder) {
 // The MoveNet model config folder contains options for MoveNet config
 // settings.
 function addMoveNetControllers(modelConfigFolder, type) {
-  params.STATE.modelConfig = {...params.MOVENET_CONFIG};
-  params.STATE.modelConfig.type = type != null ? type : 'lightning';
+  params.STATE.modelConfig = { ...params.MOVENET_CONFIG };
+  params.STATE.modelConfig.type = type != null ? type : 'thunder';
 
   // Set multipose defaults on initial page load.
   if (params.STATE.modelConfig.type === 'multipose') {
@@ -175,7 +176,7 @@ function addMoveNetControllers(modelConfigFolder, type) {
   }
 
   const typeController = modelConfigFolder.add(
-      params.STATE.modelConfig, 'type', ['lightning', 'thunder', 'multipose']);
+    params.STATE.modelConfig, 'type', ['lightning', 'thunder', 'multipose']);
   typeController.onChange(type => {
     // Set isModelChanged to true, so that we don't render any result during
     // changing models.
@@ -195,17 +196,17 @@ function addMoveNetControllers(modelConfigFolder, type) {
   });
 
   const customModelController =
-      modelConfigFolder.add(params.STATE.modelConfig, 'customModel');
+    modelConfigFolder.add(params.STATE.modelConfig, 'customModel');
   customModelController.onFinishChange(_ => {
     params.STATE.isModelChanged = true;
   });
 
   scoreThresholdController =
-      modelConfigFolder.add(params.STATE.modelConfig, 'scoreThreshold', 0, 1);
+    modelConfigFolder.add(params.STATE.modelConfig, 'scoreThreshold', 0, 1);
 
   enableTrackingController = modelConfigFolder.add(
-      params.STATE.modelConfig,
-      'enableTracking',
+    params.STATE.modelConfig,
+    'enableTracking',
   );
   enableTrackingController.onChange(_ => {
     // Set isModelChanged to true, so that we don't render any result during
@@ -217,11 +218,11 @@ function addMoveNetControllers(modelConfigFolder, type) {
 // The BlazePose model config folder contains options for BlazePose config
 // settings.
 function addBlazePoseControllers(modelConfigFolder, type) {
-  params.STATE.modelConfig = {...params.BLAZEPOSE_CONFIG};
+  params.STATE.modelConfig = { ...params.BLAZEPOSE_CONFIG };
   params.STATE.modelConfig.type = type != null ? type : 'full';
 
   const typeController = modelConfigFolder.add(
-      params.STATE.modelConfig, 'type', ['lite', 'full', 'heavy']);
+    params.STATE.modelConfig, 'type', ['lite', 'full', 'heavy']);
   typeController.onChange(_ => {
     // Set isModelChanged to true, so that we don't render any result during
     // changing models.
@@ -231,10 +232,10 @@ function addBlazePoseControllers(modelConfigFolder, type) {
   modelConfigFolder.add(params.STATE.modelConfig, 'scoreThreshold', 0, 1);
 
   const render3DController =
-      modelConfigFolder.add(params.STATE.modelConfig, 'render3D');
+    modelConfigFolder.add(params.STATE.modelConfig, 'render3D');
   render3DController.onChange(render3D => {
     document.querySelector('#scatter-gl-container').style.display =
-        render3D ? 'inline-block' : 'none';
+      render3D ? 'inline-block' : 'none';
   });
 }
 
@@ -247,7 +248,7 @@ async function initDefaultValueMap() {
   params.STATE.flags = {};
   for (const backend in params.BACKEND_FLAGS_MAP) {
     for (let index = 0; index < params.BACKEND_FLAGS_MAP[backend].length;
-         index++) {
+      index++) {
       const flag = params.BACKEND_FLAGS_MAP[backend][index];
       TUNABLE_FLAG_DEFAULT_VALUE_MAP[flag] = await tf.env().getAsync(flag);
     }
@@ -316,8 +317,8 @@ function showBackendFlagSettings(folderController, backendName) {
     // Heuristically consider a flag with at least two options as tunable.
     if (flagValueRange.length < 2) {
       console.warn(
-          `The ${flag} is considered as untunable, ` +
-          `because its value range is [${flagValueRange}].`);
+        `The ${flag} is considered as untunable, ` +
+        `because its value range is [${flagValueRange}].`);
       continue;
     }
 
@@ -328,7 +329,7 @@ function showBackendFlagSettings(folderController, backendName) {
     } else {
       // Show dropdown for other types of flags.
       flagController =
-          folderController.add(params.STATE.flags, flag, flagValueRange);
+        folderController.add(params.STATE.flags, flag, flagValueRange);
 
       // Because dat.gui always casts dropdown option values to string, we need
       // `stringValueMap` and `onFinishChange()` to recover the value type.
@@ -369,8 +370,8 @@ async function showFlagSettings(folderController, backendName) {
   const fixedSelectionCount = 1;
   while (folderController.__controllers.length > fixedSelectionCount) {
     folderController.remove(
-        folderController
-            .__controllers[folderController.__controllers.length - 1]);
+      folderController
+        .__controllers[folderController.__controllers.length - 1]);
   }
 
   // Show flag settings for the new backend.
