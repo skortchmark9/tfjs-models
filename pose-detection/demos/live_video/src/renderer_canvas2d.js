@@ -20,6 +20,13 @@ import * as scatter from 'scatter-gl';
 import * as params from './params';
 import { demoData } from './demo_data';
 
+
+// Function to calculate the Euclidean distance between two points
+function calculateDistance(x1, y1, x2, y2) {
+  const dx = x2 - x1;
+  const dy = y2 - y1;
+  return Math.sqrt(dx * dx + dy * dy);
+}
 // These anchor points allow the pose pointcloud to resize according to its
 // position in the input.
 const ANCHOR_POINTS = [[0, 0, 0], [0, 1, 0], [-1, 0, 0], [-1, -1, 0]];
@@ -61,7 +68,7 @@ export class RendererCanvas2d {
     this.scatterGLHasInitialized = false;
     this.videoWidth = canvas.width;
     this.videoHeight = canvas.height;
-    this.flip(this.videoWidth, this.videoHeight);
+    // this.flip(this.videoWidth, this.videoHeight);
 
     this.tempCanvas = document.createElement("canvas");
     this.tempCanvas.width = canvas.width;
@@ -99,11 +106,10 @@ export class RendererCanvas2d {
     circle.arc(startX, startY, params.DEFAULT_RADIUS, 0, 2 * Math.PI);
     this.tempCtx.fill(circle);
     this.tempCtx.stroke(circle);
+    this.tempCtx.translate(this.videoWidth, 0);
+    this.tempCtx.scale(-1, 1);
 
-    // Because the image from camera is mirrored, need to flip horizontally.
-
-
-    document.body.appendChild(this.tempCanvas);
+    // document.body.appendChild(this.tempCanvas);
   }
 
   flip(videoWidth, videoHeight) {
@@ -155,14 +161,19 @@ export class RendererCanvas2d {
    */
   drawResult(pose) {
     if (pose.keypoints != null) {
-      const kneepoints = this.getKneePoints(pose.keypoints);
+      let kneepoints = this.getKneePoints(pose.keypoints);
       if (kneepoints) {
-        this.drawKneeField(kneepoints, pose.id);
-        // this.drawKneepoints(kneepoints, pose.id);
+        this.lastGoodpose = kneepoints;
+      } else if (this.lastGoodpose) {
+        kneepoints = this.lastGoodpose;
+      } else {
+        return;
       }
-      // this.drawKeypoints(pose.keypoints);
-      // this.drawSkeleton(pose.keypoints, pose.id);
+      this.drawKneeField(kneepoints, pose.id);
+      this.drawKneepoints(kneepoints, pose.id);
     }
+    // this.drawKeypoints(pose.keypoints);
+    // this.drawSkeleton(pose.keypoints, pose.id);
     if (pose.keypoints3D != null && params.STATE.modelConfig.render3D) {
       this.drawKeypoints3D(pose.keypoints3D);
     }
@@ -239,6 +250,15 @@ export class RendererCanvas2d {
     drawLine(pts[1], pts[2]);
   }
 
+  colorDiff(p1, p2) {
+    // Check if the pixel color is similar to the knee color
+    const rDiff = Math.abs(p1.r - p2.r);
+    const gDiff = Math.abs(p1.g - p2.g);
+    const bDiff = Math.abs(p1.b - p2.b);
+
+    return rDiff + gDiff + bDiff;
+  }
+
   // Function to check if a pixel is part of the leg based on color similarity
   isLegPixel(imageData, kneeColor, x, y) {
     const pixelColor = this.getPixelColor(imageData, x, y);
@@ -246,10 +266,6 @@ export class RendererCanvas2d {
     // Define a color similarity threshold (adjust as needed)
     const colorThreshold = 12;
 
-    // Check if the pixel color is similar to the knee color
-    const rDiff = Math.abs(pixelColor.r - kneeColor.r);
-    const gDiff = Math.abs(pixelColor.g - kneeColor.g);
-    const bDiff = Math.abs(pixelColor.b - kneeColor.b);
 
     return rDiff < colorThreshold && gDiff < colorThreshold && bDiff < colorThreshold;
   }
@@ -265,13 +281,25 @@ export class RendererCanvas2d {
     while (stack.length > 0 && count < 100_000) {
       const { x, y } = stack.pop();
 
-      if (!visited.has(`${x},${y}`) && this.isLegPixel(imageData, kneeColor, x, y)) {
+      const pixelColor = this.getPixelColor(imageData, x, y);
+      const colorDiff = this.colorDiff(kneeColor, pixelColor);
+      const { colorWeight, distanceWeight, fringeThreshold } = params.STATE.modelConfig;
+      const distance = calculateDistance(startX, startY, x, y);
+      let isLegPixel = false;
+      if ((colorDiff * colorWeight) + (distance * distanceWeight) < fringeThreshold) {
+        isLegPixel = true;
+      }
+      // if (distance > 200) {
+      //   isLegPixel = false;
+      // }
+
+      if (!visited.has(`${x},${y}`) && isLegPixel) {
         visited.add(`${x},${y}`);
         count++;
 
         const index = (y * this.videoWidth + x) * 4;
         maskPixels[index + 1] = 255; // Set the green value to 255 (opaque) to include the pixel in the mask
-        maskPixels[index + 3] = 255; // Set the alpha value to 255 (opaque) to include the pixel in the mask
+        maskPixels[index + 3] = 100; // Set the alpha value to 255 (opaque) to include the pixel in the mask
 
         // Add neighboring pixels to the stack for further processing
         if (x + 1 < this.videoWidth) stack.push({ x: x + 1, y });
@@ -295,12 +323,12 @@ export class RendererCanvas2d {
 
   drawKneeField(pts) {
     // Assuming you have the keypoints for "right_foot", "right_knee", and "right_hip"
-    const footX = pts[0].x;
-    const footY = pts[0].y;
+    const footX = Math.round(pts[0].x);
+    const footY = Math.round(pts[0].y);
     const kneeX = Math.round(pts[1].x);
     const kneeY = Math.round(pts[1].y);
-    const hipX = pts[2].x;
-    const hipY = pts[2].y;
+    const hipX = Math.round(pts[2].x);
+    const hipY = Math.round(pts[2].y);
 
     // Get the canvas element
     const ctx = this.ctx;
@@ -322,7 +350,7 @@ export class RendererCanvas2d {
           for (let col = 0; col < this.videoWidth; col++) {
             const index = (row * this.videoWidth + col) * 4;
             maskPixels[index] = 255; // Set the red value to 255 (opaque) to include the pixel in the mask
-            maskPixels[index + 3] = 255; // Set the alpha value to 255 (opaque) to include the pixel in the mask
+            maskPixels[index + 3] = 255; // Set the alpha value to 100 (opaque) to include the pixel in the mask
           }
         }
       }
@@ -337,23 +365,14 @@ export class RendererCanvas2d {
     this.tempCtx.putImageData(maskData, 0, 0);
 
 
-    // Flip horizontally
-
-    // Set the fill color for the leg outline (you can use a different color or style)
-    // ctx.fillStyle = "rgba(0, 255, 100, 0.5)"; // Transparent greenish
-
-    // Fill the leg outline. 
-    this.ctx.setTransform(1, 0, 0, 1, 0, 0);
+    // Fill the leg outline, first undoing the transform
+    // since we are copying from a correctly oriented canvas.
+    // this.ctx.setTransform(1, 0, 0, 1, 0, 0);
     this.ctx.drawImage(this.tempCanvas, 0, 0);
-    this.ctx.translate(this.videoWidth, 0);
-    this.ctx.scale(-1, 1);
 
+    // Re-apply flip
+    // this.ctx.translate(this.videoWidth, 0);
     // this.ctx.scale(-1, 1);
-
-    // Reset current transformation matrix to the identity matrix
-    // this.ctx.putImageData(maskData, 0, 0);
-    // Fill the leg outline
-    // ctx.fill();
   }
 
 

@@ -46,7 +46,10 @@ export const MOVENET_CONFIG = {
   type: 'thunder',
   scoreThreshold: 0.3,
   customModel: '',
-  enableTracking: false
+  enableTracking: false,
+  colorWeight: 3,
+  distanceWeight: 0.3,
+  fringeThreshold: 70,
 };
 /**
  * This map descripes tunable flags and theior corresponding types.

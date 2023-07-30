@@ -204,6 +204,15 @@ function addMoveNetControllers(modelConfigFolder, type) {
   scoreThresholdController =
     modelConfigFolder.add(params.STATE.modelConfig, 'scoreThreshold', 0, 1);
 
+  const colorWeight =
+    modelConfigFolder.add(params.STATE.modelConfig, 'colorWeight', 0, 10);
+
+  const distanceWeight =
+    modelConfigFolder.add(params.STATE.modelConfig, 'distanceWeight', 0, 10);
+
+  const fringeThreshold =
+    modelConfigFolder.add(params.STATE.modelConfig, 'fringeThreshold', 0, 100);
+
   enableTrackingController = modelConfigFolder.add(
     params.STATE.modelConfig,
     'enableTracking',
