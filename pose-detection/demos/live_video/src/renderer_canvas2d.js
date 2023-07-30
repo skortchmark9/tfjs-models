@@ -18,6 +18,7 @@ import * as posedetection from '@tensorflow-models/pose-detection';
 import * as scatter from 'scatter-gl';
 
 import * as params from './params';
+import { demoData } from './demo_data';
 
 // These anchor points allow the pose pointcloud to resize according to its
 // position in the input.
@@ -61,6 +62,48 @@ export class RendererCanvas2d {
     this.videoWidth = canvas.width;
     this.videoHeight = canvas.height;
     this.flip(this.videoWidth, this.videoHeight);
+
+    this.tempCanvas = document.createElement("canvas");
+    this.tempCanvas.width = canvas.width;
+    this.tempCanvas.height = canvas.height;
+    this.tempCanvas.style = 'position: absolute; right: 0; top: 0;';
+    this.tempCtx = this.tempCanvas.getContext("2d");
+
+    const startX = 180;
+    const startY = 290;
+    const imageData = this.tempCtx.getImageData(0, 0, this.videoWidth, this.videoHeight);
+    const pixels = imageData.data;
+    for (let i = 0; i < demoData.length; i++) {
+      pixels[i] = demoData[i];
+    }
+    this.tempCtx.putImageData(imageData, 0, 0);
+
+
+    const maskPixels = new Uint8ClampedArray(demoData.length);
+    maskPixels.fill(0);
+    // use pixels to figure out fringe
+    this.regionGrow(imageData, maskPixels, startX, startY);
+    for (let i = 0; i < maskPixels.length; i++) {
+      if (maskPixels[i] !== 0) {
+        pixels[i] = maskPixels[i];
+      }
+    }
+    this.tempCtx.putImageData(imageData, 0, 0);
+
+    // build fringe around knee point
+    this.tempCtx.fillStyle = 'Red';
+    this.tempCtx.strokeStyle = 'White';
+    this.tempCtx.lineWidth = params.DEFAULT_LINE_WIDTH;
+
+    const circle = new Path2D();
+    circle.arc(startX, startY, params.DEFAULT_RADIUS, 0, 2 * Math.PI);
+    this.tempCtx.fill(circle);
+    this.tempCtx.stroke(circle);
+
+    // Because the image from camera is mirrored, need to flip horizontally.
+
+
+    document.body.appendChild(this.tempCanvas);
   }
 
   flip(videoWidth, videoHeight) {
@@ -112,7 +155,11 @@ export class RendererCanvas2d {
    */
   drawResult(pose) {
     if (pose.keypoints != null) {
-      this.drawKneepoints(pose.keypoints, pose.id);
+      const kneepoints = this.getKneePoints(pose.keypoints);
+      if (kneepoints) {
+        this.drawKneeField(kneepoints, pose.id);
+        // this.drawKneepoints(kneepoints, pose.id);
+      }
       // this.drawKeypoints(pose.keypoints);
       // this.drawSkeleton(pose.keypoints, pose.id);
     }
@@ -145,15 +192,11 @@ export class RendererCanvas2d {
     return angleDeg;
   }
 
-  drawKneepoints(keypoints) {
+  getKneePoints(keypoints) {
+    if (!keypoints) {
+      return;
+    }
     const sumScores = (pts) => pts.reduce((base, acc) => base + acc.score, 0);
-
-    const drawLine = (kp1, kp2) => {
-      this.ctx.beginPath();
-      this.ctx.moveTo(kp1.x, kp1.y);
-      this.ctx.lineTo(kp2.x, kp2.y);
-      this.ctx.stroke();
-    };
 
     const left_knee_points = keypoints.filter((point) => {
       return (['left_hip', 'left_knee', 'left_ankle'].includes(point.name))
@@ -172,6 +215,17 @@ export class RendererCanvas2d {
       return;
     }
 
+    return pts;
+  }
+
+  drawKneepoints(pts) {
+    const drawLine = (kp1, kp2) => {
+      this.ctx.beginPath();
+      this.ctx.moveTo(kp1.x, kp1.y);
+      this.ctx.lineTo(kp2.x, kp2.y);
+      this.ctx.stroke();
+    };
+
     this.ctx.fillStyle = 'Red';
     this.ctx.strokeStyle = 'White';
     this.ctx.lineWidth = params.DEFAULT_LINE_WIDTH;
@@ -184,6 +238,124 @@ export class RendererCanvas2d {
     drawLine(pts[0], pts[1]);
     drawLine(pts[1], pts[2]);
   }
+
+  // Function to check if a pixel is part of the leg based on color similarity
+  isLegPixel(imageData, kneeColor, x, y) {
+    const pixelColor = this.getPixelColor(imageData, x, y);
+
+    // Define a color similarity threshold (adjust as needed)
+    const colorThreshold = 12;
+
+    // Check if the pixel color is similar to the knee color
+    const rDiff = Math.abs(pixelColor.r - kneeColor.r);
+    const gDiff = Math.abs(pixelColor.g - kneeColor.g);
+    const bDiff = Math.abs(pixelColor.b - kneeColor.b);
+
+    return rDiff < colorThreshold && gDiff < colorThreshold && bDiff < colorThreshold;
+  }
+
+
+  // Helper function to perform region growing
+  regionGrow(imageData, maskPixels, startX, startY) {
+    const kneeColor = this.getPixelColor(imageData, startX, startY);
+    const visited = new Set();
+    const stack = [{ x: startX, y: startY }];
+    let count = 0;
+
+    while (stack.length > 0 && count < 100_000) {
+      const { x, y } = stack.pop();
+
+      if (!visited.has(`${x},${y}`) && this.isLegPixel(imageData, kneeColor, x, y)) {
+        visited.add(`${x},${y}`);
+        count++;
+
+        const index = (y * this.videoWidth + x) * 4;
+        maskPixels[index + 1] = 255; // Set the green value to 255 (opaque) to include the pixel in the mask
+        maskPixels[index + 3] = 255; // Set the alpha value to 255 (opaque) to include the pixel in the mask
+
+        // Add neighboring pixels to the stack for further processing
+        if (x + 1 < this.videoWidth) stack.push({ x: x + 1, y });
+        if (x - 1 >= 0) stack.push({ x: x - 1, y });
+        if (y + 1 < this.videoHeight) stack.push({ x, y: y + 1 });
+        if (y - 1 >= 0) stack.push({ x, y: y - 1 });
+      }
+    }
+  }
+
+  // Function to get the color of a pixel at given coordinates (x, y)
+  getPixelColor(imageData, x, y) {
+    const index = (y * this.videoWidth + x) * 4;
+    return {
+      r: imageData.data[index + 0],
+      g: imageData.data[index + 1],
+      b: imageData.data[index + 2],
+    };
+  }
+
+
+  drawKneeField(pts) {
+    // Assuming you have the keypoints for "right_foot", "right_knee", and "right_hip"
+    const footX = pts[0].x;
+    const footY = pts[0].y;
+    const kneeX = Math.round(pts[1].x);
+    const kneeY = Math.round(pts[1].y);
+    const hipX = pts[2].x;
+    const hipY = pts[2].y;
+
+    // Get the canvas element
+    const ctx = this.ctx;
+    this.tempCtx.clearRect(0, 0, this.videoWidth, this.videoHeight);
+
+    // Create a mask to represent the leg region
+    const maskData = this.tempCtx.getImageData(0, 0, this.videoWidth, this.videoHeight);
+    const maskPixels = maskData.data;
+
+    // Get the current pixel data
+    const pixelData = ctx.getImageData(0, 0, this.videoWidth, this.videoHeight);
+
+    // Draw debug overlay
+    let debug = false;
+    // debug = true;
+    if (debug) {
+      for (let row = 0; row < this.videoHeight; row++) {
+        if ([1, 2, 3].includes(row % 9)) {
+          for (let col = 0; col < this.videoWidth; col++) {
+            const index = (row * this.videoWidth + col) * 4;
+            maskPixels[index] = 255; // Set the red value to 255 (opaque) to include the pixel in the mask
+            maskPixels[index + 3] = 255; // Set the alpha value to 255 (opaque) to include the pixel in the mask
+          }
+        }
+      }
+    }
+
+
+    this.regionGrow(pixelData, maskPixels, kneeX, kneeY);
+    this.regionGrow(pixelData, maskPixels, hipX, hipY);
+    this.regionGrow(pixelData, maskPixels, footX, footY);
+
+    // Apply the leg mask to the canvas
+    this.tempCtx.putImageData(maskData, 0, 0);
+
+
+    // Flip horizontally
+
+    // Set the fill color for the leg outline (you can use a different color or style)
+    // ctx.fillStyle = "rgba(0, 255, 100, 0.5)"; // Transparent greenish
+
+    // Fill the leg outline. 
+    this.ctx.setTransform(1, 0, 0, 1, 0, 0);
+    this.ctx.drawImage(this.tempCanvas, 0, 0);
+    this.ctx.translate(this.videoWidth, 0);
+    this.ctx.scale(-1, 1);
+
+    // this.ctx.scale(-1, 1);
+
+    // Reset current transformation matrix to the identity matrix
+    // this.ctx.putImageData(maskData, 0, 0);
+    // Fill the leg outline
+    // ctx.fill();
+  }
+
 
   /**
    * Draw the keypoints on the video.
