@@ -135,7 +135,7 @@ function endEstimatePosesStats() {
     const averageInferenceTime = inferenceTimeSum / numInferences;
     inferenceTimeSum = 0;
     numInferences = 0;
-    stats.customFpsPanel.update(
+    stats?.customFpsPanel.update(
       1000.0 / averageInferenceTime, 120 /* maxValue */);
     lastPanelUpdate = endInferenceTime;
   }
@@ -286,7 +286,7 @@ async function app() {
   }
   await setupDatGui(urlParams);
 
-  stats = setupStats();
+  // stats = setupStats();
   const isWebGPU = STATE.backend === 'tfjs-webgpu';
   const importVideo = (urlParams.get('importVideo') === 'true') && isWebGPU;
 
@@ -306,6 +306,17 @@ async function app() {
   }
 
   renderPrediction();
+
+  screen.orientation.lock('landscape');
+
+  // Listen for orientation changes
+  // let wasLandscape = screen.orientation.type.startsWith('landscape');
+  // window.addEventListener("orientationchange", function () {
+  //   // Announce the new orientation number
+  //   const isLandscape = screen.orientation.type.startsWith('landscape');
+  //   STATE.isSizeOptionChanged = isLandscape && !wasLandscape;
+  //   wasLandscape = isLandscape;
+  // }, false);
 };
 
 app();

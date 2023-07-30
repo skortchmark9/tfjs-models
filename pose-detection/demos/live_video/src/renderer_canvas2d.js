@@ -18,8 +18,10 @@ import * as posedetection from '@tensorflow-models/pose-detection';
 import * as scatter from 'scatter-gl';
 
 import * as params from './params';
-import { demoData } from './demo_data';
+// import { demoData } from './demo_data';
 
+const RAD_TO_DEG = 180 / Math.PI;
+const DEG_TO_RAD = Math.PI / 180;
 
 // Function to calculate the Euclidean distance between two points
 function calculateDistance(x1, y1, x2, y2) {
@@ -80,6 +82,7 @@ export class RendererCanvas2d {
     const startY = 290;
     const imageData = this.tempCtx.getImageData(0, 0, this.videoWidth, this.videoHeight);
     const pixels = imageData.data;
+    const demoData = [];
     for (let i = 0; i < demoData.length; i++) {
       pixels[i] = demoData[i];
     }
@@ -171,36 +174,14 @@ export class RendererCanvas2d {
       }
       this.drawKneeField(kneepoints, pose.id);
       this.drawKneepoints(kneepoints, pose.id);
+      this.drawAngle(kneepoints, pose.id);
     }
+
     // this.drawKeypoints(pose.keypoints);
     // this.drawSkeleton(pose.keypoints, pose.id);
     if (pose.keypoints3D != null && params.STATE.modelConfig.render3D) {
       this.drawKeypoints3D(pose.keypoints3D);
     }
-  }
-
-  calculateAngle(point1, point2, point3) {
-    // Calculate the vectors between the points
-    const vector1 = [point2.x - point1.x, point2.y - point1.y];
-    const vector2 = [point2.x - point3.x, point2.y - point3.y];
-
-    // Calculate the dot product of the two vectors
-    const dotProduct = vector1[0] * vector2[0] + vector1[1] * vector2[1];
-
-    // Calculate the magnitudes of the vectors
-    const magnitude1 = Math.sqrt(vector1[0] ** 2 + vector1[1] ** 2);
-    const magnitude2 = Math.sqrt(vector2[0] ** 2 + vector2[1] ** 2);
-
-    // Calculate the cosine of the angle using the dot product and magnitudes
-    const cosineAngle = dotProduct / (magnitude1 * magnitude2);
-
-    // Calculate the angle in radians
-    const angleRad = Math.acos(cosineAngle);
-
-    // Convert the angle from radians to degrees
-    const angleDeg = (180 / Math.PI) * angleRad;
-
-    return angleDeg;
   }
 
   getKneePoints(keypoints) {
@@ -226,10 +207,10 @@ export class RendererCanvas2d {
       return;
     }
 
-    return pts;
+    return pts.map((pt) => ({ ...pt, x: Math.round(pt.x), y: Math.round(pt.y) }));
   }
 
-  drawKneepoints(pts) {
+  drawKneepoints(kneepoints) {
     const drawLine = (kp1, kp2) => {
       this.ctx.beginPath();
       this.ctx.moveTo(kp1.x, kp1.y);
@@ -242,13 +223,46 @@ export class RendererCanvas2d {
     this.ctx.lineWidth = params.DEFAULT_LINE_WIDTH;
 
     this.ctx.fillStyle = 'Green';
-    for (const pt of pts) {
+    for (const pt of kneepoints) {
       this.drawKeypoint(pt);
     }
 
-    drawLine(pts[0], pts[1]);
-    drawLine(pts[1], pts[2]);
+    drawLine(kneepoints[0], kneepoints[1]);
+    drawLine(kneepoints[1], kneepoints[2]);
   }
+
+  calculateAngle(p1, p2) {
+    const dx = p2.x - p1.x;
+    const dy = p2.y - p1.y;
+    const angle = Math.atan2(dy, dx);
+    return angle;
+  }
+
+  drawAngle(kneepoints) {
+    const ctx = this.ctx;
+    // Assuming you have the keypoints for "right_foot", "right_knee", and "right_hip"
+    const rightFoot = kneepoints[2];
+    const rightKnee = kneepoints[1];
+    const rightHip = kneepoints[0];
+
+    // Calculate the knee angle using the two points (foot and knee)
+    const kneeFootAngle = this.calculateAngle(rightKnee, rightFoot);
+
+    // Calculate the knee angle between the knee and hip points
+    const kneeHipAngle = this.calculateAngle(rightKnee, rightHip);
+
+    // Draw the arc overlay
+    const centerX = rightKnee.x;
+    const centerY = rightKnee.y;
+    const radius = 50; // Adjust the radius of the arc as needed
+
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, radius, kneeHipAngle, kneeFootAngle);
+    ctx.strokeStyle = "red"; // You can use a different color or style for the arc
+    ctx.lineWidth = 2; // Adjust the line width as needed
+    ctx.stroke();
+  }
+
 
   colorDiff(p1, p2) {
     // Check if the pixel color is similar to the knee color
