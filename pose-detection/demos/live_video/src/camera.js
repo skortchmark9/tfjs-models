@@ -15,7 +15,7 @@
  * =============================================================================
  */
 import * as params from './params';
-import {isMobile} from './util';
+import { isLandscape, isMobile } from './util';
 
 export class Camera {
   constructor() {
@@ -29,20 +29,29 @@ export class Camera {
   static async setup(cameraParam) {
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
       throw new Error(
-          'Browser API navigator.mediaDevices.getUserMedia not available');
+        'Browser API navigator.mediaDevices.getUserMedia not available');
     }
 
-    const {targetFPS, sizeOption} = cameraParam;
-    const $size = params.VIDEO_SIZE[sizeOption];
+    const { targetFPS, sizeOption } = cameraParam;
+    let { width, height } = params.VIDEO_SIZE[sizeOption];
+    // Only setting the video to a specified size for large screen, on
+    // mobile devices accept the default size.
+    if (isMobile()) {
+      if (isLandscape()) {
+        width = window.innerWidth * (2 / 3);
+        height = window.innerHeight;
+      } else {
+        width = window.innerWidth;
+        height = window.innerHeight / 2;
+      }
+    }
+
     const videoConfig = {
       'audio': false,
       'video': {
         facingMode: 'user',
-        // Only setting the video to a specified size for large screen, on
-        // mobile devices accept the default size.
-        width: isMobile() ? params.VIDEO_SIZE['360 X 270'].width : $size.width,
-        height: isMobile() ? params.VIDEO_SIZE['360 X 270'].height :
-                             $size.height,
+        width,
+        height,
         frameRate: {
           ideal: targetFPS,
         }

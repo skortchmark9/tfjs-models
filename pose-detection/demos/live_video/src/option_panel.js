@@ -32,7 +32,7 @@ const stringValueMap = {};
 let backendFolder;
 
 export async function setupDatGui(urlParams) {
-  const gui = new dat.GUI({ width: 300, closeOnTop: true });
+  const gui = new dat.GUI({ width: 282, closeOnTop: true });
   gui.domElement.id = 'gui';
 
   // The camera folder contains options for video settings.

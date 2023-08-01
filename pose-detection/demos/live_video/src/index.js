@@ -33,7 +33,7 @@ import { RendererCanvas2d } from './renderer_canvas2d';
 import { setupDatGui } from './option_panel';
 import { STATE } from './params';
 import { setupStats } from './stats_panel';
-import { setBackendAndEnvFlags } from './util';
+import { isLandscape, setBackendAndEnvFlags } from './util';
 
 console.log('wut?');
 
@@ -90,9 +90,8 @@ async function createDetector() {
 
 async function checkGuiUpdate() {
   if (STATE.isTargetFPSChanged || STATE.isSizeOptionChanged) {
-    camera = await Camera.setupCamera(STATE.camera);
+    camera = await Camera.setup(STATE.camera);
     STATE.isTargetFPSChanged = false;
-    STATE.isSizeOptionChanged = false;
   }
 
   if (STATE.isModelChanged || STATE.isFlagChanged || STATE.isBackendChanged) {
@@ -119,6 +118,14 @@ async function checkGuiUpdate() {
     STATE.isBackendChanged = false;
     STATE.isModelChanged = false;
   }
+
+  if (STATE.isSizeOptionChanged) {
+    if (!useGpuRenderer) {
+      renderer.resize(camera.video.width, camera.video.height);
+    }
+  }
+  STATE.isSizeOptionChanged = false;
+
 }
 
 function beginEstimatePosesStats() {
@@ -309,6 +316,7 @@ async function app() {
   let playing = true;
   pauseBtn.addEventListener('click', () => {
     playing = !playing;
+    pauseBtn.innerHTML = playing ? `Pause` : `Unpause`;
     if (!playing) {
       cancelAnimationFrame(rafId);
     } else {
@@ -321,13 +329,13 @@ async function app() {
   screen.orientation.lock('landscape');
 
   // Listen for orientation changes
-  // let wasLandscape = screen.orientation.type.startsWith('landscape');
-  // window.addEventListener("orientationchange", function () {
-  //   // Announce the new orientation number
-  //   const isLandscape = screen.orientation.type.startsWith('landscape');
-  //   STATE.isSizeOptionChanged = isLandscape && !wasLandscape;
-  //   wasLandscape = isLandscape;
-  // }, false);
+  let wasLandscape = isLandscape();
+  window.addEventListener("orientationchange", function () {
+    // Announce the new orientation number
+    STATE.isSizeOptionChanged = isLandscape() !== wasLandscape;
+
+    wasLandscape = isLandscape();
+  }, false);
 };
 
 app();

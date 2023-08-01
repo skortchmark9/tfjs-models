@@ -68,13 +68,14 @@ export class RendererCanvas2d {
       'styles': { polyline: { defaultOpacity: 1, deselectedOpacity: 1 } }
     });
     this.scatterGLHasInitialized = false;
+    this.canvas = canvas;
     this.videoWidth = canvas.width;
     this.videoHeight = canvas.height;
     // this.flip(this.videoWidth, this.videoHeight);
 
     this.tempCanvas = document.createElement("canvas");
-    this.tempCanvas.width = canvas.width;
-    this.tempCanvas.height = canvas.height;
+    this.resize(canvas.width, canvas.height);
+
     this.tempCanvas.style = 'position: absolute; right: 0; top: 0;';
     this.tempCtx = this.tempCanvas.getContext("2d");
 
@@ -109,6 +110,7 @@ export class RendererCanvas2d {
     circle.arc(startX, startY, params.DEFAULT_RADIUS, 0, 2 * Math.PI);
     this.tempCtx.fill(circle);
     this.tempCtx.stroke(circle);
+    // flip??
     this.tempCtx.translate(this.videoWidth, 0);
     this.tempCtx.scale(-1, 1);
 
@@ -126,6 +128,19 @@ export class RendererCanvas2d {
 
     this.scatterGLEl.style.display =
       params.STATE.modelConfig.render3D ? 'inline-block' : 'none';
+  }
+
+  resize(videoWidth, videoHeight) {
+    this.videoWidth = videoWidth;
+    this.videoHeight = videoHeight;
+
+    this.canvas.width = this.videoWidth;
+    this.canvas.height = this.videoHeight;
+
+    this.tempCanvas.width = videoWidth;
+    this.tempCanvas.height = videoHeight;
+
+    // technically need to redraw but can rely on raf loop for now
   }
 
   draw(rendererParams) {
@@ -203,7 +218,7 @@ export class RendererCanvas2d {
       pts = right_knee_points;
     }
 
-    if (sumScores(pts) < (params.STATE.modelConfig.scoreThreshold * 3)) {
+    if (sumScores(pts) < (params.STATE.modelConfig.scoreThreshold * 3.5)) {
       return;
     }
 
@@ -292,7 +307,7 @@ export class RendererCanvas2d {
     const stack = [{ x: startX, y: startY }];
     let count = 0;
 
-    while (stack.length > 0 && count < 100_000) {
+    while (stack.length > 0 && count < 100000) {
       const { x, y } = stack.pop();
 
       const pixelColor = this.getPixelColor(imageData, x, y);
