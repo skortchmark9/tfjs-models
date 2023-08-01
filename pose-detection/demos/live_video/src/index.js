@@ -305,6 +305,17 @@ async function app() {
     renderer = new RendererCanvas2d(canvas);
   }
 
+  const pauseBtn = document.getElementById('pause');
+  let playing = true;
+  pauseBtn.addEventListener('click', () => {
+    playing = !playing;
+    if (!playing) {
+      cancelAnimationFrame(rafId);
+    } else {
+      renderPrediction();
+    }
+  });
+
   renderPrediction();
 
   screen.orientation.lock('landscape');

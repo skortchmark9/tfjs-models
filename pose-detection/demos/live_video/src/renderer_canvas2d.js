@@ -167,8 +167,8 @@ export class RendererCanvas2d {
       let kneepoints = this.getKneePoints(pose.keypoints);
       if (kneepoints) {
         this.lastGoodpose = kneepoints;
-      } else if (this.lastGoodpose) {
-        kneepoints = this.lastGoodpose;
+        // } else if (this.lastGoodpose) {
+        //   kneepoints = this.lastGoodpose;
       } else {
         return;
       }
@@ -382,8 +382,11 @@ export class RendererCanvas2d {
     // Fill the leg outline, first undoing the transform
     // since we are copying from a correctly oriented canvas.
     // this.ctx.setTransform(1, 0, 0, 1, 0, 0);
-    this.ctx.drawImage(this.tempCanvas, 0, 0);
 
+    let alpha = this.ctx.globalAlpha;
+    this.ctx.globalAlpha = 0.4;
+    this.ctx.drawImage(this.tempCanvas, 0, 0);
+    this.ctx.globalAlpha = alpha;
     // Re-apply flip
     // this.ctx.translate(this.videoWidth, 0);
     // this.ctx.scale(-1, 1);
