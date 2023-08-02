@@ -44,7 +44,27 @@ limitations under the License.
       position: relative;
       margin: 0;
     }
-    #canvas-wrapper,
+
+    .canvas-wrapper {
+      position: relative;
+      width: 100%;
+    }
+
+    @media screen and (orientation:portrait) {
+      .canvas-wrapper {
+        width: 100%;
+      }
+    }
+    @media screen and (orientation:landscape) {
+      .canvas-wrapper {
+        width: 66%;
+      }
+    }
+
+    #output {
+      width: 100%;
+    }
+
     #scatter-gl-container {
       position: relative;
     }

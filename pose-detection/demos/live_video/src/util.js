@@ -34,6 +34,9 @@ export function isMobile() {
   return isAndroid() || isiOS();
 }
 
+export const sleep = (n) => new Promise((resolve) => setTimeout(resolve, n));
+
+
 /**
  * Reset the target backend.
  *

@@ -125,7 +125,6 @@ async function checkGuiUpdate() {
     }
   }
   STATE.isSizeOptionChanged = false;
-
 }
 
 function beginEstimatePosesStats() {
@@ -316,7 +315,7 @@ async function app() {
   let playing = true;
   pauseBtn.addEventListener('click', () => {
     playing = !playing;
-    pauseBtn.innerHTML = playing ? `Pause` : `Unpause`;
+    pauseBtn.innerHTML = playing ? `Pausez` : `Unpause`;
     if (!playing) {
       cancelAnimationFrame(rafId);
     } else {
@@ -326,11 +325,9 @@ async function app() {
 
   renderPrediction();
 
-  screen.orientation.lock('landscape');
-
   // Listen for orientation changes
   let wasLandscape = isLandscape();
-  window.addEventListener("orientationchange", function () {
+  screen.orientation.addEventListener('change', function () {
     // Announce the new orientation number
     STATE.isSizeOptionChanged = isLandscape() !== wasLandscape;
 

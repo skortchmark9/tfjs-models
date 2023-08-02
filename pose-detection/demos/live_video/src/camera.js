@@ -17,6 +17,7 @@
 import * as params from './params';
 import { isLandscape, isMobile } from './util';
 
+
 export class Camera {
   constructor() {
     this.video = document.getElementById('video');
@@ -33,14 +34,19 @@ export class Camera {
     }
 
     const { targetFPS, sizeOption } = cameraParam;
-    let { width, height } = params.VIDEO_SIZE[sizeOption];
+    let size = params.VIDEO_SIZE[sizeOption];
+    let { width, height } = size;
     // Only setting the video to a specified size for large screen, on
     // mobile devices accept the default size.
     if (isMobile()) {
       if (isLandscape()) {
+        // size = params.VIDEO_SIZE['640 X 360'];
         width = window.innerWidth * (2 / 3);
         height = window.innerHeight;
       } else {
+        // Note this does the wrong thing when switching
+        // BACK to portrait mode, for mysterious reasons.
+        // https://developer.apple.com/forums/thread/717988
         width = window.innerWidth;
         height = window.innerHeight / 2;
       }
@@ -64,7 +70,7 @@ export class Camera {
     camera.video.srcObject = stream;
 
     await new Promise((resolve) => {
-      camera.video.onloadedmetadata = () => {
+      camera.video.onloadedmetadata = (evt) => {
         resolve(video);
       };
     });
@@ -73,12 +79,10 @@ export class Camera {
 
     const videoWidth = camera.video.videoWidth;
     const videoHeight = camera.video.videoHeight;
+    console.log(`landscape = ${isLandscape()} vw = ${videoWidth} vh = ${videoHeight}`);
     // Must set below two lines, otherwise video element doesn't show.
     camera.video.width = videoWidth;
     camera.video.height = videoHeight;
-
-    const canvasContainer = document.querySelector('.canvas-wrapper');
-    canvasContainer.style = `width: ${videoWidth}px; height: ${videoHeight}px`;
 
     return camera;
   }
