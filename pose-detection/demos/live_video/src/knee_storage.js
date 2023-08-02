@@ -33,7 +33,19 @@ export function put(entry) {
   return key;
 }
 
-export function getImage(key) {
+export function getKey(entry) {
+  if (!entry) {
+    throw new Error('No valid entry.');
+  }
+  const key = `${entry.displayAngle}deg@${entry.date}`;
+  return key;
+}
+
+export function getImage(keyOrEntry) {
+  let key = keyOrEntry;
+  if (typeof keyOrEntry !== 'string') {
+    key = getKey(keyOrEntry);
+  }
   const dataURL = localStorage.getItem(key);
   return dataURL;
 }

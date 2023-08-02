@@ -68,6 +68,18 @@ limitations under the License.
       gap: 20px;
     }
 
+    .canvas-wrapper {
+        position: relative;
+        overflow: hidden;
+    }
+
+    #preview-image {
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+
+
     @media screen and (orientation:portrait) {
       #main {
         grid-template-columns: 1fr;
@@ -75,6 +87,7 @@ limitations under the License.
       }
 
       .canvas-wrapper {
+        position: relative;
         grid-row: span 2;
       }
     }
@@ -133,8 +146,19 @@ limitations under the License.
       grid-template-columns: 1fr 1fr;
     }
 
+    #history {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding: 0 10px;
+    }
+
     output {
       font-size: larger;
+    }
+
+    .hidden {
+      opacity: 0;
     }
 
   </style>
@@ -145,6 +169,7 @@ limitations under the License.
   <div id="main">
     <div class="canvas-wrapper">
       <canvas id="output"></canvas>
+      <img id="preview-image" class="hidden"></img>
       <video id="video" playsinline style="
         -webkit-transform: scaleX(-1);
         transform: scaleX(-1);

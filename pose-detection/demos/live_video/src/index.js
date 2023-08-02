@@ -310,6 +310,10 @@ async function app() {
   saveBtn.addEventListener('click', () => {
     const image = renderer.canvas.toDataURL();
     const kneepoints = renderer.lastKneepoints;
+    if (!kneepoints) {
+      alert('Never recorded a knee angle :(');
+      return;
+    }
     const { width, height } = renderer.canvas;
     const dimensions = { width, height };
     const confidence = sumScores(kneepoints);
@@ -347,6 +351,16 @@ function displayHistory() {
   entries.map((entry) => {
     const button = document.createElement('button');
     button.classList.add('history-button');
+    button.addEventListener('click', () => {
+      const img = document.getElementById('preview-image');
+      if (img.src) {
+        img.removeAttribute('src');
+        img.classList.add('hidden');
+      } else {
+        img.src = KneeStorage.getImage(entry);
+        img.classList.remove('hidden');
+      }
+    });
 
     const { displayAngle, date } = entry;
 
