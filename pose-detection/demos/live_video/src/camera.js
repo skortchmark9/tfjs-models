@@ -38,18 +38,16 @@ export class Camera {
     let { width, height } = size;
     // Only setting the video to a specified size for large screen, on
     // mobile devices accept the default size.
-    if (isMobile()) {
-      if (isLandscape()) {
-        // size = params.VIDEO_SIZE['640 X 360'];
-        width = window.innerWidth * (2 / 3);
-        height = window.innerHeight;
-      } else {
-        // Note this does the wrong thing when switching
-        // BACK to portrait mode, for mysterious reasons.
-        // https://developer.apple.com/forums/thread/717988
-        width = window.innerWidth;
-        height = window.innerHeight / 2;
-      }
+    if (isLandscape()) {
+      // size = params.VIDEO_SIZE['640 X 360'];
+      width = window.innerWidth * (2 / 3);
+      height = window.innerHeight;
+    } else {
+      // Note this does the wrong thing when switching
+      // BACK to portrait mode, for mysterious reasons.
+      // https://developer.apple.com/forums/thread/717988
+      width = window.innerWidth;
+      height = window.innerHeight / 2;
     }
 
     const videoConfig = {

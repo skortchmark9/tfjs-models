@@ -21,6 +21,7 @@ import '@tensorflow/tfjs-backend-webgpu';
 import * as mpPose from '@mediapipe/pose';
 import * as tfjsWasm from '@tensorflow/tfjs-backend-wasm';
 import * as tf from '@tensorflow/tfjs-core';
+import * as KneeStorage from './knee_storage';
 
 tfjsWasm.setWasmPaths(
   `https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-wasm@${tfjsWasm.version_wasm}/dist/`);
@@ -33,9 +34,8 @@ import { RendererCanvas2d } from './renderer_canvas2d';
 import { setupDatGui } from './option_panel';
 import { STATE } from './params';
 import { setupStats } from './stats_panel';
-import { isLandscape, setBackendAndEnvFlags } from './util';
-
-console.log('wut?');
+import { getRelativeTime, isLandscape, setBackendAndEnvFlags } from './util';
+import { getKneePoints, getAngle3Deg, sumScores } from './knee';
 
 let detector, camera, stats;
 let startInferenceTime, numInferences = 0;
@@ -195,83 +195,29 @@ async function renderResult() {
     [camera.video, poses, canvasInfo, STATE.modelConfig.scoreThreshold] :
     [camera.video, poses, STATE.isModelChanged];
   renderer.draw(rendererParams);
-  drawKneeAngles(poses[0])
-}
-function calculateAngle(point1, point2, point3) {
-  // Calculate the vectors between the points
-  const vector1 = [point2.x - point1.x, point2.y - point1.y];
-  const vector2 = [point2.x - point3.x, point2.y - point3.y];
-
-  // Calculate the dot product of the two vectors
-  const dotProduct = vector1[0] * vector2[0] + vector1[1] * vector2[1];
-
-  // Calculate the magnitudes of the vectors
-  const magnitude1 = Math.sqrt(vector1[0] ** 2 + vector1[1] ** 2);
-  const magnitude2 = Math.sqrt(vector2[0] ** 2 + vector2[1] ** 2);
-
-  // Calculate the cosine of the angle using the dot product and magnitudes
-  const cosineAngle = dotProduct / (magnitude1 * magnitude2);
-
-  // Calculate the angle in radians
-  const angleRad = Math.acos(cosineAngle);
-
-  // Convert the angle from radians to degrees
-  const angleDeg = (180 / Math.PI) * angleRad;
-
-  return angleDeg;
+  drawScores(poses[0])
 }
 
-function sumScores(pts) {
-  let total = 0;
-  for (const pt of pts) {
-    total += pt.score
-  }
-  return total;
-}
 
 /**
  * Draw the keypoints on the video.
  * @param keypoints A list of keypoints.
  */
-function drawKneeAngles(pose) {
-  if (!pose) {
-    return
+function drawScores(pose) {
+  const pts = getKneePoints(pose?.keypoints);
+  if (!pts) {
+    return;
   }
-  const keypoints = pose.keypoints;
-  const left_knee_points = keypoints.filter((point) => {
-    return (['left_hip', 'left_knee', 'left_ankle'].includes(point.name))
-  });
-  const left_score = sumScores(left_knee_points);
-
-  const right_knee_points = keypoints.filter((point) => {
-    return (['right_hip', 'right_knee', 'right_ankle'].includes(point.name))
-  });
-  const right_score = sumScores(right_knee_points);
-  const threshold = 1;
+  const score = sumScores(pts);
 
   // Output
-  let outputDiv = document.getElementById('output-angle');
-  if (!outputDiv) {
-    const stats = document.getElementById('stats');
-    outputDiv = document.createElement('div');
-    outputDiv.id = 'output-angle';
-    outputDiv.style = 'font-size: 40px';
-    stats.insertBefore(outputDiv, stats.firstChild)
-  }
+  const outputAngle = document.getElementById('output-angle');
+  const outputConfidence = document.getElementById('output-confidence');
 
-  const bestScore = Math.max(left_score, right_score);
-  let pts;
-  if (right_score == bestScore) {
-    pts = right_knee_points;
-  } else {
-    pts = left_knee_points;
-  }
-  const angle = calculateAngle(...pts)
-
-  if (bestScore > threshold) {
-    const displayAngle = 180 - Math.round(angle);
-    outputDiv.innerHTML = `${displayAngle}deg / ${bestScore.toFixed(3)}`;
-  }
+  const angleDeg = getAngle3Deg(...pts);
+  const displayAngle = 180 - Math.round(angleDeg);
+  outputAngle.innerText = `${displayAngle}deg`;
+  outputConfidence.innerText = `${score.toFixed(3)}`;
 }
 
 async function renderPrediction() {
@@ -310,20 +256,76 @@ async function app() {
   } else {
     renderer = new RendererCanvas2d(canvas);
   }
+  renderPrediction();
 
-  const pauseBtn = document.getElementById('pause');
+  // Buttons
+  const snapBtn = document.getElementById('snap');
+  const delayedSnapBtn = document.getElementById('delayed-snap');
+  const saveBtn = document.getElementById('save');
+
   let playing = true;
-  pauseBtn.addEventListener('click', () => {
+  const onSnap = () => {
     playing = !playing;
-    pauseBtn.innerHTML = playing ? `Pausez` : `Unpause`;
+    snapBtn.innerHTML = playing ? `Snap` : `Retake`;
     if (!playing) {
       cancelAnimationFrame(rafId);
+      saveBtn.removeAttribute('disabled');
     } else {
+      renderPrediction();
+      saveBtn.setAttribute('disabled', '');
+    }
+  };
+  snapBtn.addEventListener('click', onSnap);
+
+  let delayedSnapId;
+  delayedSnapBtn.addEventListener('click', () => {
+    if (delayedSnapId) {
+      // Cancel
+      clearInterval(delayedSnapId);
+      delayedSnapId = null;
+      delayedSnapBtn.innerText = `In 5s`;
+      return;
+    }
+
+    let i = 6;
+    const tick = () => {
+      i--;
+      delayedSnapBtn.innerText = `In ${i}s...`;
+      if (i === 0) {
+        onSnap();
+        delayedSnapBtn.innerText = `In 5s`;
+        clearInterval(delayedSnapId);
+        delayedSnapId = null;
+      }
+    };
+
+    delayedSnapId = setInterval(tick, 1000);
+    tick();
+
+    if (!playing) {
       renderPrediction();
     }
   });
 
-  renderPrediction();
+  saveBtn.addEventListener('click', () => {
+    const image = renderer.canvas.toDataURL();
+    const kneepoints = renderer.lastKneepoints;
+    const { width, height } = renderer.canvas;
+    const dimensions = { width, height };
+    const confidence = sumScores(kneepoints);
+    const angleDeg = getAngle3Deg(...kneepoints);
+    const displayAngle = 180 - Math.round(angleDeg);
+    const date = new Date().toISOString();
+
+    const data = {
+      image, kneepoints, dimensions, confidence, angleDeg, displayAngle, date
+    };
+
+    const key = KneeStorage.put(data);
+    console.log('saved', key);
+  });
+
+  displayHistory();
 
   // Listen for orientation changes
   let wasLandscape = isLandscape();
@@ -334,6 +336,27 @@ async function app() {
     wasLandscape = isLandscape();
   }, false);
 };
+
+function displayHistory() {
+  // DB
+  const history = document.getElementById('history');
+  history.innerHTML = '';
+  const entries = KneeStorage.getEntries();
+  const fragment = document.createDocumentFragment();
+
+  entries.map((entry) => {
+    const button = document.createElement('button');
+    button.classList.add('history-button');
+
+    const { displayAngle, date } = entry;
+
+    button.innerText = `${displayAngle}degrees - ${getRelativeTime(date)}`;
+    fragment.appendChild(button);
+  })
+
+  history.appendChild(fragment);
+
+}
 
 app();
 

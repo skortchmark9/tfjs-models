@@ -7,10 +7,14 @@ X handle responsive better
 X fix angle rendering
 * fix safari issue with responsive video streams :(
 * and use that for a better angle estimation
-* snapshot button
-* clean up UI
+X snapshot button
+X clean up UI
+* make UI nice
 * tune model to be better?
   - 3d model would be better prolly
 * pwa
 * storage?
 * "adjust"
+
+
+// save 

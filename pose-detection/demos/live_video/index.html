@@ -15,9 +15,19 @@ limitations under the License.
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1.0, user-scalable=no">
   <style>
-    body {
+    body, html {
+      margin: 0;
+      height: 100%;
+    }
+
+    p, h1, h2, h3, h4, h5, h6 {
       margin: 0;
     }
+
+    * {
+      box-sizing: border-box;
+    }
+
     #stats {
       position: absolute;
       height: 200px;
@@ -37,12 +47,17 @@ limitations under the License.
     }
 
     .dg.ac {
+      display: none;
       z-index: 11 !important;
     }
 
     #main {
+      height: 100%;
       position: relative;
       margin: 0;
+      display: grid;
+      grid-template-columns: 66% auto;
+      grid-template-rows: auto auto;
     }
 
     .canvas-wrapper {
@@ -50,14 +65,27 @@ limitations under the License.
       width: 100%;
     }
 
+    .controls {
+      flex-grow: 1;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
     @media screen and (orientation:portrait) {
-      .canvas-wrapper {
-        width: 100%;
+      #main {
+        grid-template-columns: 1fr;
+        grid-template-rows: 1fr min-content;
+      }
+
+      .container {
+        grid-row: span 2;
       }
     }
     @media screen and (orientation:landscape) {
-      .canvas-wrapper {
-        width: 66%;
+      .container {
+        grid-row: span 2;
       }
     }
 
@@ -73,11 +101,52 @@ limitations under the License.
     #scatter-gl-container {
       display: none;
     }
+
+    .snap-button {
+      --snap-button-color: #eee;
+      --snap-button-inside-ring-color: rgb(173, 173, 173);
+      color: #434343;
+      cursor: pointer;
+      width: 100px;
+      text-align: center;
+      position: relative;
+      padding: 20px;
+      border-radius: 25px;
+      background: none;
+      outline: none;
+      border: 4px solid var(--snap-button-color, red);
+      box-shadow: inset 0 0 0 2px var(--snap-button-inside-ring-color, white);
+      background: var(--snap-button-color, red);
+      transition: all .4s cubic-bezier(0.075, 0.82, 0.165, 1);
+    }
+
+    .snap-button:hover {
+      --snap-button-color: #efefef;
+      color: #202020;
+    }
+
+    .snap-button:disabled {
+      --snap-button-color: #dedede;
+      --snap-button-inside-ring-color: rgb(198 198 198);
+      color: #959595;
+      cursor: unset;
+    }
+
+    #numbers {
+      display: grid;
+      column-gap: 20px;
+      row-gap: 10px;
+      grid-template-columns: 1fr 1fr;
+    }
+
+    output {
+      font-size: larger;
+    }
+
   </style>
 </head>
 <body>
   <div id="stats">
-    <button id="pause">Pause</button>
   </div>
   <div id="main">
     <div class="container">
@@ -93,6 +162,29 @@ limitations under the License.
         </video>
       </div>
       <div id="scatter-gl-container"></div>
+    </div>
+    <div class="controls">
+      <section>
+        <header>
+          <h3>Flexion Friend</h3>
+        </header>
+        <p>Let's see that knee bend, friend! I'll use <a
+            target="_blank"
+            href="https://www.tensorflow.org/hub/tutorials/movenet">Movenet</a> to record your best angles.</p>
+      </section>
+      <section id="numbers">
+          <label for="output-angle">Flexion</label>
+          <label for="output-confidence">Confidence</label>
+          <output id="output-angle">--</output>
+          <output id="output-confidence">--</output>
+      </section>
+      <section id="buttons">
+        <button class="snap-button" id="snap">Freeze</button>
+        <button class="snap-button" id="delayed-snap">In 5s</button>
+        <button class="snap-button" id="save" disabled>Save</button>
+      </section>
+    </div>
+    <div id="history">
     </div>
   </div>
 </body>

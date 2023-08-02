@@ -112,3 +112,19 @@ export async function setBackendAndEnvFlags(flagConfig, backend) {
     await resetBackend($backend);
   }
 }
+
+const rtf = new Intl.RelativeTimeFormat('en', {
+  numeric: 'auto',
+  style: 'short',
+});
+
+export function getRelativeTime(isoStr) {
+  const timestamp = new Date(isoStr).getTime();
+  const DAY_MILLISECONDS = 1000 * 60 * 60 * 24;
+
+  const daysDifference = Math.round(
+    (timestamp - new Date().getTime()) / DAY_MILLISECONDS,
+  );
+
+  return rtf.format(daysDifference, 'day');
+}

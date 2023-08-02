@@ -18,10 +18,9 @@ import * as posedetection from '@tensorflow-models/pose-detection';
 import * as scatter from 'scatter-gl';
 
 import * as params from './params';
+import { getKneePoints, getAngle2 } from './knee';
 // import { demoData } from './demo_data';
 
-const RAD_TO_DEG = 180 / Math.PI;
-const DEG_TO_RAD = Math.PI / 180;
 
 // Function to calculate the Euclidean distance between two points
 function calculateDistance(x1, y1, x2, y2) {
@@ -171,11 +170,11 @@ export class RendererCanvas2d {
    */
   drawResult(pose) {
     if (pose.keypoints != null) {
-      let kneepoints = this.getKneePoints(pose.keypoints);
+      let kneepoints = getKneePoints(pose.keypoints);
       if (kneepoints) {
-        this.lastGoodpose = kneepoints;
-        // } else if (this.lastGoodpose) {
-        //   kneepoints = this.lastGoodpose;
+        this.lastKneepoints = kneepoints;
+        // } else if (this.lastKneepoints) {
+        //   kneepoints = this.lastKneepoints;
       } else {
         return;
       }
@@ -189,32 +188,6 @@ export class RendererCanvas2d {
     if (pose.keypoints3D != null && params.STATE.modelConfig.render3D) {
       this.drawKeypoints3D(pose.keypoints3D);
     }
-  }
-
-  getKneePoints(keypoints) {
-    if (!keypoints) {
-      return;
-    }
-    const sumScores = (pts) => pts.reduce((base, acc) => base + acc.score, 0);
-
-    const left_knee_points = keypoints.filter((point) => {
-      return (['left_hip', 'left_knee', 'left_ankle'].includes(point.name))
-    });
-
-    const right_knee_points = keypoints.filter((point) => {
-      return (['right_hip', 'right_knee', 'right_ankle'].includes(point.name))
-    });
-
-    let pts = left_knee_points;
-    if (sumScores(left_knee_points) < sumScores(right_knee_points)) {
-      pts = right_knee_points;
-    }
-
-    if (sumScores(pts) < (params.STATE.modelConfig.scoreThreshold * 3.5)) {
-      return;
-    }
-
-    return pts.map((pt) => ({ ...pt, x: Math.round(pt.x), y: Math.round(pt.y) }));
   }
 
   drawKneepoints(kneepoints) {
@@ -253,10 +226,10 @@ export class RendererCanvas2d {
     const hip = kneepoints[0];
 
     // Calculate the knee angle using the two points (foot and knee)
-    const kneeFootAngle = this.calculateAngle(knee, foot);
+    const kneeFootAngle = getAngle2(knee, foot);
 
     // Calculate the knee angle between the knee and hip points
-    const kneeHipAngle = this.calculateAngle(knee, hip);
+    const kneeHipAngle = getAngle2(knee, hip);
 
     // Draw the arc overlay
     const centerX = knee.x;
@@ -265,7 +238,12 @@ export class RendererCanvas2d {
 
     ctx.beginPath();
     // default to clockwise, but remember the whole scene is flipped
-    ctx.arc(centerX, centerY, radius, kneeFootAngle, kneeHipAngle + Math.PI);
+    let counterclockwise = true;
+    if (foot.x < hip.x) {
+      counterclockwise = false;
+    }
+
+    ctx.arc(centerX, centerY, radius, kneeFootAngle, kneeHipAngle + Math.PI, counterclockwise);
     ctx.strokeStyle = "#eae0e0";
     ctx.stroke();
 
