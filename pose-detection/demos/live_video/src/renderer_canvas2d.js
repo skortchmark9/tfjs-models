@@ -71,7 +71,6 @@ export class RendererCanvas2d {
     this.canvas = canvas;
     this.videoWidth = canvas.width;
     this.videoHeight = canvas.height;
-    // this.flip(this.videoWidth, this.videoHeight);
 
     this.tempCanvas = document.createElement("canvas");
     this.resize(canvas.width, canvas.height);
@@ -110,18 +109,11 @@ export class RendererCanvas2d {
     circle.arc(startX, startY, params.DEFAULT_RADIUS, 0, 2 * Math.PI);
     this.tempCtx.fill(circle);
     this.tempCtx.stroke(circle);
-    // flip??
-    this.tempCtx.translate(this.videoWidth, 0);
-    this.tempCtx.scale(-1, 1);
 
     // document.body.appendChild(this.tempCanvas);
   }
 
   flip(videoWidth, videoHeight) {
-    // Because the image from camera is mirrored, need to flip horizontally.
-    this.ctx.translate(videoWidth, 0);
-    this.ctx.scale(-1, 1);
-
     this.scatterGLEl.style =
       `width: ${videoWidth}px; height: ${videoHeight}px;`;
     this.scatterGL.resize();
@@ -394,17 +386,10 @@ export class RendererCanvas2d {
     this.tempCtx.putImageData(maskData, 0, 0);
 
 
-    // Fill the leg outline, first undoing the transform
-    // since we are copying from a correctly oriented canvas.
-    // this.ctx.setTransform(1, 0, 0, 1, 0, 0);
-
     let alpha = this.ctx.globalAlpha;
     this.ctx.globalAlpha = 0.4;
     this.ctx.drawImage(this.tempCanvas, 0, 0);
     this.ctx.globalAlpha = alpha;
-    // Re-apply flip
-    // this.ctx.translate(this.videoWidth, 0);
-    // this.ctx.scale(-1, 1);
   }
 
 
