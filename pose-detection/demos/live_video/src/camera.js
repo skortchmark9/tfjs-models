@@ -47,7 +47,7 @@ export class Camera {
       // BACK to portrait mode, for mysterious reasons.
       // https://developer.apple.com/forums/thread/717988
       width = window.innerWidth;
-      height = window.innerHeight / 2;
+      height = window.innerWidth;
     }
 
     const videoConfig = {

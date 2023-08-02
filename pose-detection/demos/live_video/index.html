@@ -60,11 +60,6 @@ limitations under the License.
       grid-template-rows: auto auto;
     }
 
-    .canvas-wrapper {
-      position: relative;
-      width: 100%;
-    }
-
     .controls {
       flex-grow: 1;
       padding: 20px;
@@ -79,18 +74,17 @@ limitations under the License.
         grid-template-rows: 1fr min-content;
       }
 
-      .container {
+      .canvas-wrapper {
         grid-row: span 2;
       }
     }
     @media screen and (orientation:landscape) {
-      .container {
+      .canvas-wrapper {
         grid-row: span 2;
       }
     }
 
     canvas#output {
-      width: 100%;
       transform: rotateY(180deg);
     }
 
@@ -149,19 +143,16 @@ limitations under the License.
   <div id="stats">
   </div>
   <div id="main">
-    <div class="container">
-      <div class="canvas-wrapper">
-        <canvas id="output"></canvas>
-        <video id="video" playsinline style="
-          -webkit-transform: scaleX(-1);
-          transform: scaleX(-1);
-          display: none;
-          width: auto;
-          height: auto;
-          ">
-        </video>
-      </div>
-      <div id="scatter-gl-container"></div>
+    <div class="canvas-wrapper">
+      <canvas id="output"></canvas>
+      <video id="video" playsinline style="
+        -webkit-transform: scaleX(-1);
+        transform: scaleX(-1);
+        display: none;
+        width: auto;
+        height: auto;
+        ">
+      </video>
     </div>
     <div class="controls">
       <section>

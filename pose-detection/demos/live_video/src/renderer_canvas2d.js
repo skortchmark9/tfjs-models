@@ -60,13 +60,6 @@ const COLOR_PALETTE = [
 export class RendererCanvas2d {
   constructor(canvas) {
     this.ctx = canvas.getContext('2d');
-    this.scatterGLEl = document.querySelector('#scatter-gl-container');
-    this.scatterGL = new scatter.ScatterGL(this.scatterGLEl, {
-      'rotateOnStart': true,
-      'selectEnabled': false,
-      'styles': { polyline: { defaultOpacity: 1, deselectedOpacity: 1 } }
-    });
-    this.scatterGLHasInitialized = false;
     this.canvas = canvas;
     this.videoWidth = canvas.width;
     this.videoHeight = canvas.height;
@@ -110,15 +103,6 @@ export class RendererCanvas2d {
     this.tempCtx.stroke(circle);
 
     // document.body.appendChild(this.tempCanvas);
-  }
-
-  flip(videoWidth, videoHeight) {
-    this.scatterGLEl.style =
-      `width: ${videoWidth}px; height: ${videoHeight}px;`;
-    this.scatterGL.resize();
-
-    this.scatterGLEl.style.display =
-      params.STATE.modelConfig.render3D ? 'inline-block' : 'none';
   }
 
   resize(videoWidth, videoHeight) {
