@@ -248,26 +248,31 @@ export class RendererCanvas2d {
   drawAngle(kneepoints) {
     const ctx = this.ctx;
     // Assuming you have the keypoints for "right_foot", "right_knee", and "right_hip"
-    const rightFoot = kneepoints[2];
-    const rightKnee = kneepoints[1];
-    const rightHip = kneepoints[0];
+    const foot = kneepoints[2];
+    const knee = kneepoints[1];
+    const hip = kneepoints[0];
 
     // Calculate the knee angle using the two points (foot and knee)
-    const kneeFootAngle = this.calculateAngle(rightKnee, rightFoot);
+    const kneeFootAngle = this.calculateAngle(knee, foot);
 
     // Calculate the knee angle between the knee and hip points
-    const kneeHipAngle = this.calculateAngle(rightKnee, rightHip);
+    const kneeHipAngle = this.calculateAngle(knee, hip);
 
     // Draw the arc overlay
-    const centerX = rightKnee.x;
-    const centerY = rightKnee.y;
+    const centerX = knee.x;
+    const centerY = knee.y;
     const radius = 50; // Adjust the radius of the arc as needed
 
     ctx.beginPath();
-    ctx.arc(centerX, centerY, radius, kneeHipAngle, kneeFootAngle);
-    ctx.strokeStyle = "red"; // You can use a different color or style for the arc
-    ctx.lineWidth = 2; // Adjust the line width as needed
+    // default to clockwise, but remember the whole scene is flipped
+    ctx.arc(centerX, centerY, radius, kneeFootAngle, kneeHipAngle + Math.PI);
+    ctx.strokeStyle = "#eae0e0";
     ctx.stroke();
+
+    ctx.setLineDash([2, 5]);
+    ctx.lineTo(knee.x, knee.y);
+    ctx.stroke();
+    ctx.setLineDash([]);
   }
 
 
