@@ -105,14 +105,17 @@ limitations under the License.
       justify-content: center;
       align-items: center;
       margin: var(--ff-padding-small);
-      background: #eee;
-      border: 1px solid rgb(173, 173, 173);
+      backdrop-filter: blur(5px) brightness(80%);
+      -webkit-backdrop-filter: blur(5px) brightness(90%);
+      background: none;
+      box-shadow: 0 2px 1px #00000057;
+      border: none;
     }
 
     #flip-camera svg {
       height: 80%;
       width: 80%;
-      fill: #434343;
+      fill: #f0f0f0;
     }
 
     #intro-placeholder {

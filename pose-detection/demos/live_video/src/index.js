@@ -227,6 +227,7 @@ async function renderPrediction() {
     await renderResult();
   }
 
+  cancelAnimationFrame(rafId);
   rafId = requestAnimationFrame(renderPrediction);
 };
 
@@ -330,11 +331,17 @@ async function app() {
     displayHistory();
   });
 
-  flipBtn.addEventListener('click', () => {
-    const facingMode = STATE.camera.facingMode === 'user' ? 'environment' : 'user';
-    STATE.camera.facingMode = facingMode;
-    STATE.isSizeOptionChanged = true;
-  });
+  const devices = await navigator.mediaDevices.enumerateDevices();
+  const cameras = devices.filter((device) => device.kind === 'videoinput');
+  if (cameras.length > 1) {
+    flipBtn.addEventListener('click', () => {
+      const facingMode = STATE.camera.facingMode === 'user' ? 'environment' : 'user';
+      STATE.camera.facingMode = facingMode;
+      STATE.isSizeOptionChanged = true;
+    });
+  } else {
+    flipBtn.style.display = 'none';
+  }
 
 
   displayHistory();
@@ -346,7 +353,7 @@ async function app() {
   document.querySelector('.canvas-wrapper').classList.add('has-video');
   setTimeout(() => {
     document.getElementById('intro-placeholder').classList.add('fadeout');
-  }, 3000);
+  }, 2500);
 
 
   // Listen for orientation changes
@@ -364,6 +371,7 @@ function displayHistory() {
   const history = document.getElementById('history');
   history.innerHTML = '';
   const entries = KneeStorage.getEntries();
+  entries.reverse();
   const fragment = document.createDocumentFragment();
 
   entries.map((entry) => {
