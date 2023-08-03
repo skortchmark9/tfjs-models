@@ -256,12 +256,12 @@ async function app() {
   } else {
     renderer = new RendererCanvas2d(canvas);
   }
-  renderPrediction();
 
   // Buttons
   const snapBtn = document.getElementById('snap');
   const delayedSnapBtn = document.getElementById('delayed-snap');
   const saveBtn = document.getElementById('save');
+  const flipBtn = document.getElementById('flip-camera');
 
   let playing = true;
   const onSnap = () => {
@@ -329,7 +329,24 @@ async function app() {
     console.log('saved', key);
   });
 
+  flipBtn.addEventListener('click', () => {
+    const facingMode = STATE.camera.facingMode === 'user' ? 'environment' : 'user';
+    STATE.camera.facingMode = facingMode;
+    STATE.isSizeOptionChanged = true;
+  });
+
+
   displayHistory();
+
+  console.time('time to first frame');
+  await renderPrediction();
+  console.timeEnd('time to first frame');
+
+  document.querySelector('.canvas-wrapper').classList.add('has-video');
+  setTimeout(() => {
+    document.getElementById('intro-placeholder').classList.add('fadeout');
+  }, 3000);
+
 
   // Listen for orientation changes
   let wasLandscape = isLandscape();

@@ -33,7 +33,7 @@ export class Camera {
         'Browser API navigator.mediaDevices.getUserMedia not available');
     }
 
-    const { targetFPS, sizeOption } = cameraParam;
+    const { targetFPS, sizeOption, facingMode } = cameraParam;
     let size = params.VIDEO_SIZE[sizeOption];
     let { width, height } = size;
     // Only setting the video to a specified size for large screen, on
@@ -53,7 +53,7 @@ export class Camera {
     const videoConfig = {
       'audio': false,
       'video': {
-        facingMode: 'user',
+        facingMode,
         width,
         height,
         frameRate: {
@@ -81,6 +81,14 @@ export class Camera {
     // Must set below two lines, otherwise video element doesn't show.
     camera.video.width = videoWidth;
     camera.video.height = videoHeight;
+
+    const canvas = document.getElementById('output');
+    if (facingMode === 'environment') {
+      canvas.style.transform = `rotateY(0deg)`;
+    } else {
+      canvas.style.transform = `rotateY(180deg)`;
+    }
+
 
     return camera;
   }

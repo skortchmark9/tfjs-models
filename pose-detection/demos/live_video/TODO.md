@@ -9,12 +9,15 @@ X fix angle rendering
 * and use that for a better angle estimation
 X snapshot button
 X clean up UI
+X storage?
+X flip camera
+X make banner which goes away
 * make UI nice
 * tune model to be better?
   - 3d model would be better prolly
 * pwa
-* storage?
 * "adjust"
+* svg angles
+* opacity slider for previews
 
-
-// save 
+// save
