@@ -327,6 +327,7 @@ async function app() {
 
     const key = KneeStorage.put(data);
     console.log('saved', key);
+    displayHistory();
   });
 
   flipBtn.addEventListener('click', () => {
