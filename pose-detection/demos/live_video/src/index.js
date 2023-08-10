@@ -249,6 +249,8 @@ async function app() {
     return;
   });
 
+  displayHistory();
+
   await setupDatGui(urlParams);
 
   // stats = setupStats();
@@ -355,9 +357,6 @@ async function app() {
     flipBtn.style.display = 'none';
   }
 
-
-  displayHistory();
-
   console.time('time to first framez');
   await renderPrediction();
   console.timeEnd('time to first framez');
@@ -381,30 +380,53 @@ async function app() {
 function displayHistory() {
   // DB
   const history = document.getElementById('history');
+  const wrapper = document.querySelector('.canvas-wrapper')
   history.innerHTML = '';
   const entries = KneeStorage.getEntries();
   entries.reverse();
+  const max = Math.max(...entries.map((e) => e.displayAngle));
   const fragment = document.createDocumentFragment();
 
-  entries.map((entry) => {
-    const button = document.createElement('button');
-    button.classList.add('history-button');
-    button.addEventListener('click', () => {
-      const img = document.getElementById('preview-image');
-      if (img.src) {
-        img.removeAttribute('src');
-        img.classList.add('hidden');
-      } else {
-        img.src = KneeStorage.getImage(entry);
-        img.classList.remove('hidden');
-      }
-    });
+  const select = document.createElement('select');
+  fragment.appendChild(select);
 
+  const placeholder = document.createElement('option');
+  placeholder.value = '';
+  placeholder.innerText = `View Snapshots - Record: ${max}°`;
+  placeholder.setAttribute('disabled', '');
+  placeholder.setAttribute('selected', '');
+  select.appendChild(placeholder);
+
+
+  entries.map((entry) => {
+    const option = document.createElement('option');
     const { displayAngle, date } = entry;
 
-    button.innerText = `${displayAngle}degrees - ${getRelativeTime(date)}`;
-    fragment.appendChild(button);
+    const isRecord = displayAngle === max;
+
+    option.innerText = `${displayAngle}° - ${getRelativeTime(date)}${isRecord ? ' 🌟' : ''}`;
+    select.appendChild(option);
   })
+
+  select.addEventListener('change', (evt) => {
+    const { selectedIndex } = evt.target.options;
+    const img = document.getElementById('preview-image');
+    // Special case - resume video
+    if (selectedIndex === 0) {
+      placeholder.innerText = `View Snapshots - Record: ${max}°`;
+      placeholder.setAttribute('disabled', '');
+      img.removeAttribute('src');
+      wrapper.classList.remove('viewing-snapshot');
+      return;
+    }
+
+    const idx = selectedIndex - 1;
+    const entry = entries[idx];
+    img.src = KneeStorage.getImage(entry);
+    wrapper.classList.add('viewing-snapshot');
+    placeholder.innerText = 'Resume Measurement'
+    placeholder.removeAttribute('disabled');
+  });
 
   history.appendChild(fragment);
 
