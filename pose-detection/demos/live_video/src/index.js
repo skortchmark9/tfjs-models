@@ -290,6 +290,7 @@ async function app() {
       saveBtn.setAttribute('disabled', '');
     }
   };
+  canvas.addEventListener('click', onSnap);
   snapBtn.addEventListener('click', onSnap);
 
   let delayedSnapId;
