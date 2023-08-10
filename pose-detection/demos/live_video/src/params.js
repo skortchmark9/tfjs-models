@@ -16,6 +16,7 @@
  */
 import * as posedetection from '@tensorflow-models/pose-detection';
 import { isiOS } from './util';
+import { KNEE_SELECTION } from './knee';
 
 export const DEFAULT_LINE_WIDTH = 2;
 export const DEFAULT_RADIUS = 4;
@@ -29,7 +30,7 @@ export const STATE = {
   camera: { targetFPS: 60, sizeOption: '640 X 480', facingMode: 'user' },
   backend: '',
   flags: {},
-  modelConfig: {}
+  modelConfig: {},
 };
 export const BLAZEPOSE_CONFIG = {
   maxPoses: 1,

@@ -14,7 +14,7 @@ limitations under the License.
 <head>
   <meta charset="utf-8">
   <title>Flexion Friend</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1.0, user-scalable=no,viewport-fit=cover">
   <style>
     body, html {
       margin: 0;
@@ -24,7 +24,12 @@ limitations under the License.
     body {
       --ff-padding-small: 10px;
       --ff-padding-medium: 20px;
+      --ff-padding-large: 40px;
       --ff-background-color: white;
+
+      /* font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto,
+    Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif; */
+
     }
 
     p, h1, h2, h3, h4, h5, h6 {
@@ -63,16 +68,22 @@ limitations under the License.
       position: relative;
       margin: 0;
       display: grid;
-      grid-template-columns: 66% auto;
+      grid-template-columns: auto 360px;
       grid-template-rows: auto auto;
     }
 
     .controls {
-      flex-grow: 1;
-      padding: var(--ff-padding-medium);
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
+      display: grid;
+      gap: 0.5em;
+      grid-template-columns: 1fr 1fr 1fr;
+      grid-auto-rows: min-content;
+      padding: var(--ff-padding-small);
+      text-align: center;
+      justify-items: center;
+    }
+
+    .controls output {
+      padding: 0.5em;
     }
 
     .canvas-wrapper {
@@ -97,7 +108,6 @@ limitations under the License.
       color: #eee;
       top: 0;
       right: 0;
-
       height: 50px;
       width: 50px;
       border-radius: 50%;
@@ -120,7 +130,7 @@ limitations under the License.
 
     #intro-placeholder {
       width: 100%;
-      padding: var(--ff-padding-medium);
+      padding: var(--ff-padding-large);
       background: var(--ff-background-color);
     }
 
@@ -185,27 +195,162 @@ limitations under the License.
       cursor: unset;
     }
 
+    #buttons,
     #numbers {
-      display: grid;
-      column-gap: 20px;
-      row-gap: 10px;
-      grid-template-columns: 1fr 1fr;
+      display: contents;
+    }
+
+    #numbers > label {
+      padding: 0.5em;
     }
 
     #history {
       display: flex;
       flex-direction: column;
       gap: 4px;
-      padding: 0 10px;
-    }
-
-    output {
-      font-size: larger;
+      padding: var(--ff-padding-small);
     }
 
     .hidden {
       opacity: 0;
     }
+
+    /* Begin Fancy Side Selector */
+    form {
+      padding: 1em 2em;
+    }
+
+    form > div + div {
+      margin: 2em 0 0 0;
+    }
+
+    .side-selector {
+      display: flex;
+      --checked-color: #767676;
+      --unchecked-color: #767676;
+    }
+
+    .side-selector [type="checkbox"] {
+      position: absolute;
+      top: auto;
+      overflow: hidden;
+      clip: rect(1px, 1px, 1px, 1px);
+      width: 1px;
+      height: 1px;
+      white-space: nowrap;
+    }
+
+    .side-selector [type="checkbox"] + label {
+      display: block;
+      position: relative;
+      padding: 0.5em;
+      padding-left: 3em;
+      max-width: calc(100% - 2em);
+    }
+
+    .side-selector label {
+      display: inline-block;
+      padding: 0.5em;
+    }
+
+    .side-selector label:hover {
+      text-decoration: underline;
+    }
+
+    .side-selector [type="checkbox"]:focus + label::before,
+    .side-selector [type="checkbox"]:hover + label::before {
+      box-shadow: 0 0 0.1em #333;
+    }
+    .side-selector [type="checkbox"]:focus + label::after,
+    .side-selector [type="checkbox"]:hover + label::after {
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='50' cy='50' r='50' fill='rgba(0,0,0,.25)'/%3E%3C/svg%3E");
+      background-size: 30%;
+      background-repeat: no-repeat;
+      background-position: center center;
+    }
+
+    .side-selector [type="checkbox"] + label::before {
+      content: "";
+      position: absolute;
+      height: 1.5em;
+      transition: all 0.25s ease;
+    }
+
+    .side-selector [type="checkbox"] + label::after {
+      content: "";
+      position: absolute;
+      height: 1.5em;
+      transition: all 0.25s ease;
+    }
+
+    .side-selector [type="checkbox"] + label::before {
+      left: 0;
+      top: 0.2em;
+      width: 3em;
+      border: 0.2em solid var(--unchecked-color);
+      background: var(--unchecked-color);
+      border-radius: 1.1em;
+    }
+
+    .side-selector [type="checkbox"] + label::after {
+      left: 0;
+      top: 0.25em;
+      background-color: #fff;
+      background-position: center center;
+      border-radius: 50%;
+      width: 1.5em;
+      border: 0.15em solid var(--unchecked-color);
+    }
+
+    .side-selector [type="checkbox"]:checked + label::after {
+      left: 1.6em;
+      border-color: var(--checked-color);
+      color: var(--checked-color);
+    }
+
+    .side-selector [type="checkbox"]:indeterminate + label::after {
+      left: 0.8em;
+    }
+
+    .side-selector [type="checkbox"]:indeterminate + label::before {
+      background-color: #ddd;
+    }
+
+    .side-selector [type="checkbox"]:checked + label::before {
+      background-color: var(--checked-color);
+      border-color: var(--checked-color);
+    }
+
+    .side-selector [type="checkbox"][disabled] + label::before {
+      background-color: transparent;
+      border-color: #ddd;
+    }
+
+    .side-selector [type="checkbox"][disabled] + label::after {
+      border-color: #ddd;
+    }
+
+    .side-selector [disabled]:hover + label {
+      color: #999; /* case for CSS custom property if not supporting IE/Edge */
+    }
+
+    .side-selector [type="checkbox"][disabled]:hover + label::before {
+      box-shadow: none;
+    }
+
+    .side-selector [type="checkbox"][disabled]:hover + label::after {
+      background-image: none;
+    }
+
+    /* Reduced motion */
+    @media screen and (prefers-reduced-motion: reduce) {
+      .side-selector [type="checkbox"] + label::before,
+      .side-selector [type="checkbox"] + label::after {
+        transition: none;
+      }
+    }
+
+    /* End Fancy Side Selector */
 
   </style>
 </head>
@@ -238,8 +383,15 @@ limitations under the License.
     </div>
     <div class="controls">
       <section id="numbers">
-          <label for="output-angle">Flexion</label>
+          <label id="knee-selection-label">Side</label>
+          <label id="output-angle-label" for="output-angle">Flexion</label>
           <label for="output-confidence">Confidence</label>
+          <div class="side-selector">
+            <label id="toggle-l" for="side-selector-checkbox">L</label>
+            <input type="checkbox" name="side-selector-checkbox" id="side-selector-checkbox">
+            <label for="side-selector-checkbox"></label>
+            <label id="toggle-r" for="side-selector-checkbox">R</label>
+          </div>
           <output id="output-angle">--</output>
           <output id="output-confidence">--</output>
       </section>

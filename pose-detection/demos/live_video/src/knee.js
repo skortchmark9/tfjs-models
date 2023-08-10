@@ -3,32 +3,70 @@ import { STATE } from './params';
 export const RAD_TO_DEG = 180 / Math.PI;
 export const DEG_TO_RAD = Math.PI / 180;
 
+export const KNEE_SELECTION = {
+  'AUTO': 'AUTO',
+  'LEFT': 'LEFT',
+  'RIGHT': 'RIGHT',
+};
+
+const _state_ = {
+  selection: KNEE_SELECTION.LEFT
+};
+
+export const selectKnee = (selection) => {
+  _state_.selection = selection;
+}
+
+export const getSelection = () => {
+  return _state_.selection;
+}
+
 export const sumScores = (pts) => pts.reduce((base, acc) => base + acc.score, 0);
 
 export function getKneePoints(keypoints) {
   if (!keypoints) {
     return;
   }
+  const fmt = (pts) => pts.map((pt) => ({ ...pt, x: Math.round(pt.x), y: Math.round(pt.y) }));
 
-  const left_knee_points = keypoints.filter((point) => {
+  let left_knee_points = keypoints.filter((point) => {
     return (['left_hip', 'left_knee', 'left_ankle'].includes(point.name))
   });
+  const left_score = sumScores(left_knee_points);
+  const left_angle = getAngle3Deg(...left_knee_points);
+  left_knee_points = fmt(left_knee_points);
 
-  const right_knee_points = keypoints.filter((point) => {
+  let right_knee_points = keypoints.filter((point) => {
     return (['right_hip', 'right_knee', 'right_ankle'].includes(point.name))
   });
+  const right_score = sumScores(right_knee_points);
+  const right_angle = getAngle3Deg(...right_knee_points);
+  right_knee_points = fmt(right_knee_points);
 
-  let pts = left_knee_points;
-  if (sumScores(left_knee_points) < sumScores(right_knee_points)) {
-    pts = right_knee_points;
+  const threshold = STATE.modelConfig.scoreThreshold * 3.5;
+  if (_state_.selection === KNEE_SELECTION.RIGHT) {
+    return right_score > threshold ? right_knee_points : undefined;
   }
+  if (_state_.selection === KNEE_SELECTION.LEFT) {
+    return left_score > threshold ? left_knee_points : undefined;
+  };
 
-  if (sumScores(pts) < (STATE.modelConfig.scoreThreshold * 3.5)) {
+  // Auto mode
+  // If both knees are well tracked, use the more obviously bent one,
+  // Expected values are ~ -10deg to 150deg, so let's find the one closest
+  // to the middle of that range: 70.
+  if (left_score > threshold && right_score > threshold) {
+    return (Math.abs(70 - left_angle) < Math.abs(70 - right_angle)) ?
+      left_knee_points :
+      right_knee_points;
+  } else if (left_score > threshold) {
+    return left_knee_points;
+  } else if (right_score > threshold) {
+    return right_knee_points;
+  } else {
+    // None above threshold
     return;
   }
-
-  return pts.map((pt) => ({ ...pt, x: Math.round(pt.x), y: Math.round(pt.y) }));
-
 }
 
 export function getAngle2(p1, p2) {

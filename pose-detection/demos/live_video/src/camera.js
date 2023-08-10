@@ -40,7 +40,7 @@ export class Camera {
     // mobile devices accept the default size.
     if (isLandscape()) {
       // size = params.VIDEO_SIZE['640 X 360'];
-      width = window.innerWidth * (2 / 3);
+      width = window.innerWidth - 360;
       height = window.innerHeight;
     } else {
       // Note this does the wrong thing when switching

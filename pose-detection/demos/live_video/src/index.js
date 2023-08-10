@@ -35,7 +35,7 @@ import { setupDatGui } from './option_panel';
 import { STATE } from './params';
 import { setupStats } from './stats_panel';
 import { getRelativeTime, isLandscape, setBackendAndEnvFlags } from './util';
-import { getKneePoints, getAngle3Deg, sumScores } from './knee';
+import { getKneePoints, getAngle3Deg, sumScores, getSelection, selectKnee, KNEE_SELECTION } from './knee';
 
 let detector, camera, stats;
 let startInferenceTime, numInferences = 0;
@@ -90,7 +90,9 @@ async function createDetector() {
 
 async function checkGuiUpdate() {
   if (STATE.isTargetFPSChanged || STATE.isSizeOptionChanged) {
+    console.time('camera setup');
     camera = await Camera.setup(STATE.camera);
+    console.timeEnd('camera setup');
     STATE.isTargetFPSChanged = false;
   }
 
@@ -108,7 +110,9 @@ async function checkGuiUpdate() {
     }
 
     try {
+      console.time('create detector');
       detector = await createDetector(STATE.model);
+      console.timeEnd('create detector');
     } catch (error) {
       detector = null;
       alert(error);
@@ -237,6 +241,14 @@ async function app() {
   if (!urlParams.has('model')) {
     urlParams.set('model', 'movenet');
   }
+
+  const sideCheckbox = document.getElementById('side-selector-checkbox');
+  sideCheckbox.checked = getSelection() === KNEE_SELECTION.RIGHT;
+  sideCheckbox.addEventListener('change', (evt) => {
+    selectKnee(sideCheckbox.checked ? KNEE_SELECTION.RIGHT : KNEE_SELECTION.LEFT);
+    return;
+  });
+
   await setupDatGui(urlParams);
 
   // stats = setupStats();
@@ -346,9 +358,9 @@ async function app() {
 
   displayHistory();
 
-  console.time('time to first frame');
+  console.time('time to first framez');
   await renderPrediction();
-  console.timeEnd('time to first frame');
+  console.timeEnd('time to first framez');
 
   document.querySelector('.canvas-wrapper').classList.add('has-video');
   setTimeout(() => {
