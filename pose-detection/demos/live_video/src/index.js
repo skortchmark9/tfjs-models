@@ -384,6 +384,9 @@ function displayHistory() {
   history.innerHTML = '';
   const entries = KneeStorage.getEntries();
   entries.reverse();
+  if (!entries?.length) {
+    return;
+  }
   const max = Math.max(...entries.map((e) => e.displayAngle));
   const fragment = document.createDocumentFragment();
 
