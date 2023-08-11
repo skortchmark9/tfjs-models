@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <!-- Background Circle -->
+  <circle cx="50" cy="50" r="48" fill="#4e7db5" />
+
+  <!-- First F -->
+  <text x="30" y="50" font-size="40" font-weight="bold" fill="white">F</text>
+
+  <!-- Second F -->
+  <text x="55" y="50" font-size="40" font-weight="bold" fill="white">F</text>
+
+  <!-- Angle Indicator -->
+  <path d="M 35 30 L 60 70 L 35 70" fill="none" stroke="white" stroke-width="2" />
+</svg>

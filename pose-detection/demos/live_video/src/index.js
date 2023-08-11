@@ -427,9 +427,11 @@ async function app() {
   let wasLandscape = isLandscape();
   screen.orientation.addEventListener('change', function () {
     // Announce the new orientation number
-    STATE.isSizeOptionChanged = isLandscape() !== wasLandscape;
+    setTimeout(() => {
+      STATE.isSizeOptionChanged = isLandscape() !== wasLandscape;
 
-    wasLandscape = isLandscape();
+      wasLandscape = isLandscape();
+    }, 150);
   }, false);
 };
 
