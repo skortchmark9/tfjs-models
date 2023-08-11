@@ -10,10 +10,11 @@ export const KNEE_SELECTION = {
 };
 
 const _state_ = {
-  selection: KNEE_SELECTION.LEFT
+  selection: localStorage.getItem('knee-selection') || KNEE_SELECTION.LEFT
 };
 
 export const selectKnee = (selection) => {
+  localStorage.setItem('knee-selection', selection);
   _state_.selection = selection;
 }
 

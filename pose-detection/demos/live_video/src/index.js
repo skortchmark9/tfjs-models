@@ -203,25 +203,38 @@ async function renderResult() {
 }
 
 
+function getDisplayAngle() {
+  const kneepoints = renderer.lastKneepoints;
+  if (!kneepoints) {
+    return;
+  }
+  const angleDeg = getAngle3Deg(...kneepoints);
+  const displayAngle = 180 - Math.round(angleDeg);
+  return displayAngle;
+}
+
 /**
  * Draw the keypoints on the video.
  * @param keypoints A list of keypoints.
  */
 function drawScores(pose) {
   const pts = getKneePoints(pose?.keypoints);
+  const outputAngle = document.getElementById('output-angle');
+  if (outputAngle.innerText !== '--') {
+    outputAngle.innerText = `--`;
+  }
   if (!pts) {
     return;
   }
   const score = sumScores(pts);
 
   // Output
-  const outputAngle = document.getElementById('output-angle');
   const outputConfidence = document.getElementById('output-confidence');
 
   const angleDeg = getAngle3Deg(...pts);
   const displayAngle = 180 - Math.round(angleDeg);
-  outputAngle.innerText = `${displayAngle}deg`;
-  outputConfidence.innerText = `${score.toFixed(3)}`;
+  outputAngle.innerText = `${displayAngle}°`;
+  // outputConfidence.innerText = `${score.toFixed(3)}`;
 }
 
 async function renderPrediction() {
@@ -273,7 +286,7 @@ async function app() {
   }
 
   // Buttons
-  const snapBtn = document.getElementById('snap');
+  const snapBtn = document.getElementById('output-angle');
   const delayedSnapBtn = document.getElementById('delayed-snap');
   const saveBtn = document.getElementById('save');
   const flipBtn = document.getElementById('flip-camera');
@@ -281,9 +294,10 @@ async function app() {
   let playing = true;
   const onSnap = () => {
     playing = !playing;
-    snapBtn.innerHTML = playing ? `Snap` : `Retake`;
     if (!playing) {
       cancelAnimationFrame(rafId);
+      const angle = getDisplayAngle();
+      saveBtn.innerText = angle ? `SAVE ${angle}°` : 'SAVE';
       saveBtn.removeAttribute('disabled');
     } else {
       renderPrediction();
@@ -294,22 +308,28 @@ async function app() {
   snapBtn.addEventListener('click', onSnap);
 
   let delayedSnapId;
+  let delayedSnapSvg = delayedSnapBtn.firstElementChild;
   delayedSnapBtn.addEventListener('click', () => {
     if (delayedSnapId) {
       // Cancel
       clearInterval(delayedSnapId);
       delayedSnapId = null;
-      delayedSnapBtn.innerText = `In 5s`;
+      delayedSnapBtn.innerText = '';
+      delayedSnapBtn.appendChild(delayedSnapSvg);
       return;
     }
 
-    let i = 6;
+    let i = 4;
     const tick = () => {
+      if (i === 4) {
+        delayedSnapBtn.removeChild(delayedSnapSvg);
+      }
       i--;
       delayedSnapBtn.innerText = `In ${i}s...`;
       if (i === 0) {
         onSnap();
-        delayedSnapBtn.innerText = `In 5s`;
+        delayedSnapBtn.innerText = '';
+        delayedSnapBtn.appendChild(delayedSnapSvg);
         clearInterval(delayedSnapId);
         delayedSnapId = null;
       }
@@ -324,21 +344,35 @@ async function app() {
   });
 
   saveBtn.addEventListener('click', () => {
+    // Because the image from camera is mirrored, need to flip horizontally.
     const image = renderer.canvas.toDataURL();
+
     const kneepoints = renderer.lastKneepoints;
     if (!kneepoints) {
-      alert('Never recorded a knee angle :(');
+      if (!isLandscape()) {
+        alert('Never recorded a knee angle 😢. Try landscape for best results!');
+      } else {
+        alert('Never recorded a knee angle 😢.');
+      }
+      onSnap();
       return;
     }
     const { width, height } = renderer.canvas;
     const dimensions = { width, height };
     const confidence = sumScores(kneepoints);
     const angleDeg = getAngle3Deg(...kneepoints);
-    const displayAngle = 180 - Math.round(angleDeg);
+    const displayAngle = getDisplayAngle();
     const date = new Date().toISOString();
 
     const data = {
-      image, kneepoints, dimensions, confidence, angleDeg, displayAngle, date
+      image,
+      kneepoints,
+      dimensions,
+      confidence,
+      angleDeg,
+      displayAngle,
+      date,
+      camera: STATE.camera.facingMode,
     };
 
     const key = KneeStorage.put(data);
@@ -349,13 +383,16 @@ async function app() {
   const devices = await navigator.mediaDevices.enumerateDevices();
   const cameras = devices.filter((device) => device.kind === 'videoinput');
   if (cameras.length > 1) {
+    flipBtn.style.display = 'block';
     flipBtn.addEventListener('click', () => {
       const facingMode = STATE.camera.facingMode === 'user' ? 'environment' : 'user';
       STATE.camera.facingMode = facingMode;
       STATE.isSizeOptionChanged = true;
+      document.querySelector('.canvas-wrapper').classList.add('has-flip');
     });
   } else {
-    flipBtn.style.display = 'none';
+    document.querySelector('.canvas-wrapper').classList.add('has-flip');
+
   }
 
   console.time('time to first framez');
@@ -380,9 +417,7 @@ async function app() {
 
 function displayHistory() {
   // DB
-  const history = document.getElementById('history');
   const wrapper = document.querySelector('.canvas-wrapper')
-  history.innerHTML = '';
   const entries = KneeStorage.getEntries();
   entries.reverse();
   if (!entries?.length) {
@@ -391,15 +426,16 @@ function displayHistory() {
   const max = Math.max(...entries.map((e) => e.displayAngle));
   const fragment = document.createDocumentFragment();
 
-  const select = document.createElement('select');
-  fragment.appendChild(select);
+  const select = document.getElementById('history-selector');
+  select.innerHTML = '';
+  select.id = 'history-selector';
 
   const placeholder = document.createElement('option');
   placeholder.value = '';
   placeholder.innerText = `View Snapshots - Record: ${max}°`;
   placeholder.setAttribute('disabled', '');
   placeholder.setAttribute('selected', '');
-  select.appendChild(placeholder);
+  fragment.appendChild(placeholder);
 
 
   entries.map((entry) => {
@@ -409,7 +445,7 @@ function displayHistory() {
     const isRecord = displayAngle === max;
 
     option.innerText = `${displayAngle}° - ${getRelativeTime(date)}${isRecord ? ' 🌟' : ''}`;
-    select.appendChild(option);
+    fragment.appendChild(option);
   })
 
   select.addEventListener('change', (evt) => {
@@ -427,13 +463,14 @@ function displayHistory() {
     const idx = selectedIndex - 1;
     const entry = entries[idx];
     img.src = KneeStorage.getImage(entry);
+    img.style.transform = `rotateY(${entry.camera === 'user' ? '180deg' : '0'})`;
     wrapper.classList.add('viewing-snapshot');
     placeholder.innerText = 'Resume Measurement'
     placeholder.removeAttribute('disabled');
   });
 
-  history.appendChild(fragment);
-
+  select.appendChild(fragment);
+  wrapper.classList.add('has-history');
 }
 
 app();
