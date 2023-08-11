@@ -475,11 +475,14 @@ function displayHistory() {
 
     const idx = selectedIndex - 1;
     const entry = entries[idx];
-    img.src = KneeStorage.getImage(entry);
     img.style.transform = `rotateY(${entry.camera === 'user' ? '180deg' : '0'})`;
-    wrapper.classList.add('viewing-snapshot');
     placeholder.innerText = 'Resume Measurement'
     placeholder.removeAttribute('disabled');
+
+    KneeStorage.getImage(entry).then((src) => {
+      wrapper.classList.add('viewing-snapshot');
+      img.src = src
+    });
   });
 
   select.appendChild(fragment);

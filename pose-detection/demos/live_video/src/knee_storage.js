@@ -1,3 +1,4 @@
+import { get, set } from 'idb-keyval';
 /**
  * {
  *     image,
@@ -18,14 +19,14 @@ export function put(entry) {
     db = []
   }
 
-  const { image, displayAngle, date } = entry;
+  const { image } = entry;
   const key = getKey(entry);
   delete entry.image;
 
   db.push(entry);
 
-  // Commit this item
-  localStorage.setItem(key, image);
+  // Commit this image
+  set(key, image);
 
   // Add it to the DB
   localStorage.setItem('db', JSON.stringify(db));
@@ -51,12 +52,13 @@ export function getKey(entry) {
   return key;
 }
 
-export function getImage(keyOrEntry) {
+export async function getImage(keyOrEntry) {
   let key = keyOrEntry;
   if (typeof keyOrEntry !== 'string') {
     key = getKey(keyOrEntry);
   }
-  const dataURL = localStorage.getItem(key);
+
+  const dataURL = get(key);
   return dataURL;
 }
 
