@@ -270,7 +270,13 @@ async function app() {
   const isWebGPU = STATE.backend === 'tfjs-webgpu';
   const importVideo = (urlParams.get('importVideo') === 'true') && isWebGPU;
 
-  camera = await Camera.setup(STATE.camera);
+  try {
+    camera = await Camera.setup(STATE.camera);
+  } catch (e) {
+    document.getElementById('help-text').innerText = 'Flexion Friend requires access to the camera to work.';
+    return;
+  }
+
 
   await setBackendAndEnvFlags(STATE.flags, STATE.backend);
 
@@ -414,7 +420,7 @@ async function app() {
   document.querySelector('.canvas-wrapper').classList.add('has-video');
   setTimeout(() => {
     document.getElementById('intro-placeholder').classList.add('fadeout');
-  }, 2500);
+  }, 0);
 
 
   // Listen for orientation changes

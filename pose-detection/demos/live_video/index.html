@@ -15,7 +15,13 @@ limitations under the License.
   <meta charset="utf-8">
   <title>Flexion Friend</title>
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1.0, user-scalable=no,viewport-fit=cover">
+  <meta name="theme-color" content="#222222">
   <style>
+    body {
+      --ff-theme-color: #222;
+      background-color: var(--ff-theme-color);
+    }
+
     body, html {
       margin: 0;
       height: 100%;
@@ -25,7 +31,6 @@ limitations under the License.
       --ff-padding-small: 10px;
       --ff-padding-medium: 20px;
       --ff-padding-large: 40px;
-      --ff-background-color: white;
       font-size: larger;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
@@ -81,7 +86,6 @@ limitations under the License.
     }
 
     .canvas-wrapper {
-      background: #222;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -177,15 +181,15 @@ limitations under the License.
     #save {
       font-weight: bolder;
       position: absolute;
-      width: 150px;
       border-radius: 20px;
+      width: 200px;
       transform: translateY(0);
-      transition: transform 200ms;
+      transition: transform 250ms;
       bottom: var(--ff-padding-small);
     }
 
     #save:disabled {
-      transform: translateY(200%);
+      transform: translateY(300%);
     }
 
     .circular-overlay-button svg {
@@ -196,8 +200,10 @@ limitations under the License.
 
     #intro-placeholder {
       width: 100%;
+      height: 100%;
+      color: #ccc;
       padding: var(--ff-padding-large);
-      background: var(--ff-background-color);
+      background: var(--ff-theme-color);
     }
 
     .fadeout {
@@ -207,17 +213,39 @@ limitations under the License.
 
     #action-buttons-primary {
       position: absolute;
-      right: 0;
       flex-direction: column;
-      height: 100%;
       padding: var(--ff-padding-small) 0;
       justify-content: space-between;
     }
 
 
     @media screen and (orientation:portrait) {
+      #action-buttons-primary {
+        bottom: 0;
+        width: 100%;
+        flex-direction: row;
+      }
+
+      #flip-camera {
+        top: 0;
+        right: 0;
+      }
+
+      #delete-snap {
+        bottom: 0;
+        left: 0;
+      }
+
+      #save {
+        bottom: calc(var(--circular-overlay-button-size) + var(--ff-padding-medium))
+      }
     }
     @media screen and (orientation:landscape) {
+      #action-buttons-primary {
+        height: 100%;
+        right: 0;
+      }
+
       #flip-camera {
         bottom: var(--ff-padding-small);
         left: 0;
@@ -513,6 +541,8 @@ limitations under the License.
         <p>Let's see that knee bend, friend! I'll use <a
             target="_blank"
             href="https://www.tensorflow.org/hub/tutorials/movenet">Movenet</a> to record your best angles.</p>
+        <br>
+        <p id="help-text">Once your knee angle is detected, tap the screen to save your progress.</p>
       </section>
       <video id="video" playsinline style="
         -webkit-transform: scaleX(-1);
