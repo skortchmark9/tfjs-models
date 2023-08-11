@@ -81,7 +81,7 @@ limitations under the License.
     }
 
     .canvas-wrapper {
-      background: #333;
+      background: #222;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -123,21 +123,35 @@ limitations under the License.
       display: none;
     }
 
-    .live {
-      visibility: hidden;
+    #delete-snap {
+      position: absolute;
+    }
+
+    .live,
+    .historical {
+      display: none;
     }
 
     .has-video .live {
-      visibility: visible;
+      display: flex;
+    }
+
+    .viewing-snapshot .historical {
+      display: flex;
     }
 
     .viewing-snapshot .live {
-      visibility: hidden;
+      display: none;
     }
 
     .has-flip.has-video #flip-camera {
       display: block;
     }
+
+    .viewing-snapshot #flip-camera.live {
+      display: none;
+    }
+
 
     #output-angle,
     #save {
@@ -150,7 +164,6 @@ limitations under the License.
       height: var(--circular-overlay-button-size);
       width: var(--circular-overlay-button-size);
       border-radius: 50%;
-      display: flex;
       justify-content: center;
       align-items: center;
       margin: var(--ff-padding-small);
@@ -195,7 +208,6 @@ limitations under the License.
     #action-buttons-primary {
       position: absolute;
       right: 0;
-      display: flex;
       flex-direction: column;
       height: 100%;
       padding: var(--ff-padding-small) 0;
@@ -210,6 +222,12 @@ limitations under the License.
         bottom: var(--ff-padding-small);
         left: 0;
       }
+
+      #delete-snap {
+        bottom: var(--ff-padding-small);
+        left: 0;
+      }
+
     }
 
     #scatter-gl-container {
@@ -325,8 +343,8 @@ limitations under the License.
     .side-selector {
       font-size: 0.8em;
       display: flex;
-      --checked-color: #767676;
-      --unchecked-color: #767676;
+      --checked-color: #2b2b2b;
+      --unchecked-color: #2b2b2b;
     }
 
     .side-selector [type="checkbox"] {
@@ -459,17 +477,21 @@ limitations under the License.
   <div id="main">
     <div class="canvas-wrapper">
       <canvas id="output"></canvas>
+      <img id="preview-image"></img>
+      <button class="circular-overlay-button historical" id="delete-snap">
+        <svg xmlns="http://www.w3.org/2000/svg" height="48" viewBox="0 -960 960 960" width="48"><path d="M261-120q-24.75 0-42.375-17.625T201-180v-570h-41v-60h188v-30h264v30h188v60h-41v570q0 24-18 42t-42 18H261Zm438-630H261v570h438v-570ZM367-266h60v-399h-60v399Zm166 0h60v-399h-60v399ZM261-750v570-570Z"/></svg>
+      </button>
       <button class="circular-overlay-button live" id="flip-camera">
         <svg xmlns="http://www.w3.org/2000/svg" height="48" viewBox="0 -960 960 960" width="48"><path d="M480-233q85 0 141.5-62T683-443l38 38 36-35-100-99-99 99 36 35 40-40q-6 66-48.5 114T480-283q-14 0-27.5-2t-25.5-8l-37 36q20 12 43 18t47 6ZM305-334l99-99-36-35-40 40q6-66 48.5-114T482-590q14 0 27.5 2t25.5 8l37-36q-20-12-43-18t-47-6q-85 0-141.5 62T279-430l-38-38-36 35 100 99ZM140-120q-24 0-42-18t-18-42v-513q0-23 18-41.5t42-18.5h147l73-87h240l73 87h147q23 0 41.5 18.5T880-693v513q0 24-18.5 42T820-120H140Zm0-60h680v-513H645l-73-87H388l-73 87H140v513Zm340-257Z"/></svg>
       </button>
-      <div id="action-buttons-primary">
-        <button class="circular-overlay-button live" id="output-angle">
+      <div id="action-buttons-primary" class="live">
+        <button class="circular-overlay-button" id="output-angle">
           --
         </button>
-        <button class="circular-overlay-button live" id="delayed-snap">
+        <button class="circular-overlay-button" id="delayed-snap">
           <svg xmlns="http://www.w3.org/2000/svg" height="48" viewBox="0 -960 960 960" width="48"><path d="M363-280h184q26 0 43-17t17-43v-56q0-23-8-38.5T574-450q17 0 25-16t8-39v-39q0-26-17-43t-43-17H363v60h184v64h-99v60h99v80H363v60Zm-3-580v-60h240v60H360ZM480-81q-74 0-139.5-28.5T226-187q-49-49-77.5-114.5T120-441q0-74 28.5-139.5T226-695q49-49 114.5-77.5T480-801q67 0 126 22.5T711-716l51-51 42 42-51 51q36 40 61.5 97T840-441q0 74-28.5 139.5T734-187q-49 49-114.5 77.5T480-81Zm0-60q125 0 212.5-87.5T780-441q0-125-87.5-212.5T480-741q-125 0-212.5 87.5T180-441q0 125 87.5 212.5T480-141Z"/></svg>
         </button>
-        <button id="side-selector-button" class="circular-overlay-button live">
+        <button id="side-selector-button" class="circular-overlay-button">
           <div class="side-selector">
             <label id="toggle-l" for="side-selector-checkbox">L</label>
             <input type="checkbox" name="side-selector-checkbox" id="side-selector-checkbox">
@@ -479,7 +501,6 @@ limitations under the License.
         </button>
       </div>
       <button class="circular-overlay-button live" id="save" disabled>SAVE</button>
-      <img id="preview-image"></img>
       <div id="history" class="circular-overlay-button" title="history">
         <div class="select-wrapper">
           <select id="history-selector"></select>

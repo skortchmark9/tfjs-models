@@ -290,6 +290,7 @@ async function app() {
   const delayedSnapBtn = document.getElementById('delayed-snap');
   const saveBtn = document.getElementById('save');
   const flipBtn = document.getElementById('flip-camera');
+  const deleteBtn = document.getElementById('delete-snap');
 
   let playing = true;
   const onSnap = () => {
@@ -380,6 +381,17 @@ async function app() {
     displayHistory();
   });
 
+  deleteBtn.addEventListener('click', () => {
+    const { selectedIndex } = document.getElementById('history-selector');
+    const updated = KneeStorage.deleteEntry(selectedIndex - 1);
+    displayHistory();
+
+    const img = document.getElementById('preview-image');
+    img.removeAttribute('src');
+    const wrapper = document.querySelector('.canvas-wrapper')
+    wrapper.classList.remove('viewing-snapshot');
+  });
+
   const devices = await navigator.mediaDevices.enumerateDevices();
   const cameras = devices.filter((device) => device.kind === 'videoinput');
   if (cameras.length > 1) {
@@ -421,6 +433,7 @@ function displayHistory() {
   const entries = KneeStorage.getEntries();
   entries.reverse();
   if (!entries?.length) {
+    wrapper.classList.remove('has-history');
     return;
   }
   const max = Math.max(...entries.map((e) => e.displayAngle));

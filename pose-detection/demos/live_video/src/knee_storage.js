@@ -19,7 +19,7 @@ export function put(entry) {
   }
 
   const { image, displayAngle, date } = entry;
-  const key = `${displayAngle}deg@${date}`;
+  const key = getKey(entry);
   delete entry.image;
 
   db.push(entry);
@@ -31,6 +31,16 @@ export function put(entry) {
   localStorage.setItem('db', JSON.stringify(db));
 
   return key;
+}
+
+export function deleteEntry(index) {
+  const db = getEntries();
+  const entry = db[index];
+  localStorage.removeItem(getKey(entry));
+  db.splice(index, 1);
+
+  localStorage.setItem('db', JSON.stringify(db));
+  return db;
 }
 
 export function getKey(entry) {
