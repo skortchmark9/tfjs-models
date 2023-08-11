@@ -220,8 +220,8 @@ function getDisplayAngle() {
 function drawScores(pose) {
   const pts = getKneePoints(pose?.keypoints);
   const outputAngle = document.getElementById('output-angle');
-  if (outputAngle.innerText !== '--') {
-    outputAngle.innerText = `--`;
+  if (outputAngle.innerText !== '—°') {
+    outputAngle.innerText = `—°`;
   }
   if (!pts) {
     return;
