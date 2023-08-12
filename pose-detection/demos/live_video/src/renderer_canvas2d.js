@@ -155,11 +155,8 @@ export class RendererCanvas2d {
   drawResult(pose) {
     if (pose.keypoints != null) {
       let kneepoints = getKneePoints(pose.keypoints);
-      if (kneepoints) {
-        this.lastKneepoints = kneepoints;
-        // } else if (this.lastKneepoints) {
-        //   kneepoints = this.lastKneepoints;
-      } else {
+      this.lastKneepoints = kneepoints;
+      if (!kneepoints) {
         return;
       }
       this.drawKneeField(kneepoints, pose.id);
@@ -167,8 +164,6 @@ export class RendererCanvas2d {
       this.drawAngle(kneepoints, pose.id);
     }
 
-    // this.drawKeypoints(pose.keypoints);
-    // this.drawSkeleton(pose.keypoints, pose.id);
     if (pose.keypoints3D != null && params.STATE.modelConfig.render3D) {
       this.drawKeypoints3D(pose.keypoints3D);
     }

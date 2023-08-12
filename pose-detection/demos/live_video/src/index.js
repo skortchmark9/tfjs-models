@@ -356,9 +356,9 @@ async function app() {
     const kneepoints = renderer.lastKneepoints;
     if (!kneepoints) {
       if (!isLandscape()) {
-        alert('Never recorded a knee angle 😢. Try landscape for best results!');
+        alert('Not seeing a knee angle 😢. Try landscape for best results!');
       } else {
-        alert('Never recorded a knee angle 😢.');
+        alert('Not seeing a knee angle 😢.');
       }
       onSnap();
       return;
@@ -383,6 +383,22 @@ async function app() {
 
     const key = KneeStorage.put(data);
     console.log('saved', key);
+    saveBtn.innerText = 'SAVED!';
+
+    const leg = document.getElementById('leg-emoji');
+    leg.animate([{
+      'opacity': 1,
+      'transform': 'translate(50vw, 70vh)'
+    }, {
+      'opacity': 0,
+      'transform': 'translate(0, 0)'
+    }], {
+      duration: 500,
+      easing: 'cubic-bezier(0.42, 0, 0.58, 1)',
+    }).finished.then(() => {
+      saveBtn.setAttribute('disabled', '')
+    })
+
     displayHistory();
   });
 
@@ -409,7 +425,6 @@ async function app() {
     });
   } else {
     document.querySelector('.canvas-wrapper').classList.add('has-flip');
-
   }
 
   console.time('time to first framez');
