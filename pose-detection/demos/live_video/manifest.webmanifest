@@ -2,7 +2,7 @@
   "name": "Flexion Friend",
   "description": "Let's see that knee bend, friend!",
   "theme_color": "#222222",
-  "start_url": "/",
+  "start_url": "/flexion-friend",
   "icons": [
         {
             "src": "android-chrome-192x192.png",

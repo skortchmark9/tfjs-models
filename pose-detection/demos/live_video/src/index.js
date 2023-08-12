@@ -432,9 +432,10 @@ async function app() {
   console.timeEnd('time to first framez');
 
   document.querySelector('.canvas-wrapper').classList.add('has-video');
+
   setTimeout(() => {
     document.getElementById('intro-placeholder').classList.add('fadeout');
-  }, 0);
+  }, Math.max(0, 3000 - performance.now()));
 
 
   // Listen for orientation changes
