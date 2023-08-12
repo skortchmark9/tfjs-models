@@ -20,7 +20,7 @@
     "scatter-gl": "0.0.8"
   },
   "scripts": {
-    "watch": "cross-env NODE_ENV=development parcel index.html --no-hmr --https",
+    "watch": "cross-env NODE_ENV=development parcel index.html --no-hmr",
     "build": "cross-env NODE_ENV=production parcel build index.html --public-url ./",
     "lint": "eslint .",
     "build-dep": "cd ../../ && yarn && yarn build",
@@ -63,6 +63,11 @@
   },
   "staticFiles": {
     "staticPath": [
+      {
+          "staticPath": "model",
+          "staticOutDir": "model"
+      },
+      "sw.js",
       "manifest.webmanifest",
       "android-chrome-512x512.png",
       "android-chrome-192x192.png",

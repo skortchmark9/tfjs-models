@@ -31,9 +31,8 @@ import * as posedetection from '@tensorflow-models/pose-detection';
 import { Camera } from './camera';
 import { RendererWebGPU } from './renderer_webgpu';
 import { RendererCanvas2d } from './renderer_canvas2d';
-import { setupDatGui } from './option_panel';
+import { setupDatGui, initDefaultValueMap } from './option_panel';
 import { STATE } from './params';
-import { setupStats } from './stats_panel';
 import { getRelativeTime, isLandscape, setBackendAndEnvFlags } from './util';
 import { getKneePoints, getAngle3Deg, sumScores, getSelection, selectKnee, KNEE_SELECTION } from './knee';
 
@@ -76,7 +75,7 @@ async function createDetector() {
       } else if (STATE.modelConfig.type == 'multipose') {
         modelType = posedetection.movenet.modelType.MULTIPOSE_LIGHTNING;
       }
-      const modelConfig = { modelType };
+      const modelConfig = { modelType, enableSmoothing: true, };
 
       if (STATE.modelConfig.customModel !== '') {
         modelConfig.modelUrl = STATE.modelConfig.customModel;
@@ -264,9 +263,9 @@ async function app() {
 
   displayHistory();
 
-  await setupDatGui(urlParams);
+  initDefaultValueMap();
+  // await setupDatGui(urlParams);
 
-  // stats = setupStats();
   const isWebGPU = STATE.backend === 'tfjs-webgpu';
   const importVideo = (urlParams.get('importVideo') === 'true') && isWebGPU;
 

@@ -26,12 +26,7 @@ export const VIDEO_SIZE = {
   '640 X 360': { width: 640, height: 360 },
   '360 X 270': { width: 360, height: 270 }
 };
-export const STATE = {
-  camera: { targetFPS: 60, sizeOption: '640 X 480', facingMode: 'user' },
-  backend: '',
-  flags: {},
-  modelConfig: {},
-};
+
 export const BLAZEPOSE_CONFIG = {
   maxPoses: 1,
   type: 'full',
@@ -46,12 +41,22 @@ export const MOVENET_CONFIG = {
   maxPoses: 1,
   type: 'thunder',
   scoreThreshold: 0.3,
-  customModel: '',
+  customModel: 'model/model.json',
   enableTracking: false,
   colorWeight: 3,
   distanceWeight: 0.3,
   fringeThreshold: 70,
 };
+
+export const STATE = {
+  camera: { targetFPS: 60, sizeOption: '640 X 480', facingMode: 'user' },
+  backend: 'tfjs-webgl',
+  flags: {},
+  modelConfig: { ...MOVENET_CONFIG },
+  model: posedetection.SupportedModels.MoveNet,
+};
+
+
 /**
  * This map descripes tunable flags and theior corresponding types.
  *
@@ -105,3 +110,9 @@ export const TUNABLE_FLAG_NAME_MAP = {
   WEBGL_RENDER_FLOAT32_CAPABLE: 'enable float32',
   WEBGL_FLUSH_THRESHOLD: 'GL flush wait time(ms)'
 };
+
+const backends = MODEL_BACKEND_MAP[STATE.model];
+if (STATE.backend == null) {
+  // The first element of the array is the default backend for the model.
+  STATE.backend = backends[0];
+}

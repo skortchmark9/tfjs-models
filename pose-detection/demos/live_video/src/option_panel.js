@@ -251,7 +251,7 @@ function addBlazePoseControllers(modelConfigFolder, type) {
 /**
  * Query all tunable flags' default value and populate `STATE.flags` with them.
  */
-async function initDefaultValueMap() {
+export async function initDefaultValueMap() {
   // Clean up the cache to query tunable flags' default values.
   TUNABLE_FLAG_DEFAULT_VALUE_MAP = {};
   params.STATE.flags = {};

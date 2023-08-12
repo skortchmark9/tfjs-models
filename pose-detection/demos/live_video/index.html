@@ -25,34 +25,15 @@ limitations under the License. #14DDB9
   <meta name="application-name" content="Flexion Friend">
   <meta name="msapplication-TileColor" content="#00aba9">
   <meta name="theme-color" content="#ffffff">
-  <link
-    rel="preload"
-    href="https://tfhub.dev/google/tfjs-model/movenet/singlepose/thunder/4/model.json?tfjs-format=file"
-    as="fetch"
-    type="application/octet-stream"
-    crossorigin />
-  <link
-    rel="preload"
-    href="https://tfhub.dev/google/tfjs-model/movenet/singlepose/thunder/4/group1-shard1of3.bin?tfjs-format=file"
-    as="fetch"
-    type="application/octet-stream"
-    crossorigin />
-  <link
-    rel="preload"
-    href="https://tfhub.dev/google/tfjs-model/movenet/singlepose/thunder/4/group1-shard2of3.bin?tfjs-format=file"
-    as="fetch"
-    type="application/octet-stream"
-    crossorigin />
-  <link
-    rel="preload"
-    href="https://tfhub.dev/google/tfjs-model/movenet/singlepose/thunder/4/group1-shard3of3.bin?tfjs-format=file"
-    as="fetch"
-    type="application/octet-stream"
-    crossorigin />
 <style>
     body {
       --ff-theme-color: #222222;
+      --ff-logo-color: #14DDB9;
       background-color: var(--ff-theme-color);
+    }
+
+    a, h2 {
+      color: var(--ff-logo-color);
     }
 
     body, html {
@@ -69,12 +50,17 @@ limitations under the License. #14DDB9
     }
 
     button {
+      cursor: pointer;
       font-family: inherit;
       user-select: none;
     }
 
     p, h1, h2, h3, h4, h5, h6 {
       margin: 0;
+    }
+
+    h2 {
+      margin: var(--ff-padding-medium) 0;
     }
 
     * {
@@ -571,7 +557,7 @@ limitations under the License. #14DDB9
       </div>
       <section id="intro-placeholder">
         <header>
-          <h3>Flexion Friend</h3>
+          <h2>Flexion Friend</h2>
         </header>
         <p>Let's see that knee bend, friend! I'll use <a
             target="_blank"
@@ -587,12 +573,22 @@ limitations under the License. #14DDB9
         height: auto;
         ">
       </video>
-
     </div>
   </div>
 </body>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.6/dat.gui.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/stats.js/r16/Stats.min.js"></script>
+<script>
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("sw.js").then(
+      (registration) => {
+        console.log("Service worker registration successful:", registration);
+      },
+      (error) => {
+        console.error(`Service worker registration failed: ${error}`);
+      },
+    );
+  } else {
+    console.error("Service workers are not supported.");
+  }
+</script>
 <script src="src/index.js"></script>
-
 </html>
