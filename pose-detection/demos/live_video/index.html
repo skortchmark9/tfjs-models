@@ -10,7 +10,7 @@ See the License for the specific language governing permissions and
 limitations under the License. #14DDB9
 ==============================================================================-->
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <title>Flexion Friend</title>
@@ -162,26 +162,32 @@ limitations under the License. #14DDB9
     .live,
     .historical {
       opacity: 0;
+      pointer-events: none;
     }
 
     .has-video .live {
       opacity: 1;
+      pointer-events: all;
     }
 
     .viewing-snapshot .historical {
       opacity: 1;
+      pointer-events: all;
     }
 
     .viewing-snapshot .live {
       opacity: 0;
+      pointer-events: none;
     }
 
     .has-flip.has-video #flip-camera {
       opacity: 1;
+      pointer-events: all;
     }
 
     .viewing-snapshot #flip-camera.live {
       opacity: 0;
+      pointer-events: none;
     }
 
     #output-angle,
@@ -262,8 +268,8 @@ limitations under the License. #14DDB9
       }
 
       #delete-snap {
-        bottom: 0;
-        left: 0;
+        top: 0;
+        right: 0;
       }
 
       #save {
@@ -282,8 +288,8 @@ limitations under the License. #14DDB9
       }
 
       #delete-snap {
-        bottom: var(--ff-padding-small);
-        left: 0;
+        top: var(--ff-padding-small);
+        right: 0;
       }
 
     }
@@ -398,6 +404,7 @@ limitations under the License. #14DDB9
     .side-selector {
       font-size: 0.8em;
       display: flex;
+      cursor: pointer;
       --checked-color: #2b2b2b;
       --unchecked-color: #2b2b2b;
     }
@@ -421,6 +428,7 @@ limitations under the License. #14DDB9
     }
 
     .side-selector label {
+      cursor: pointer;
       display: inline-block;
       padding: 0.5em;
     }
@@ -534,17 +542,17 @@ limitations under the License. #14DDB9
       <canvas id="output"></canvas>
       <img id="preview-image"></img>
       <div id="leg-emoji">🦵</div>
-      <button class="circular-overlay-button historical" id="delete-snap">
+      <button class="circular-overlay-button historical" id="delete-snap" title="delete this snapshot">
         <svg xmlns="http://www.w3.org/2000/svg" height="48" viewBox="0 -960 960 960" width="48"><path d="M261-120q-24.75 0-42.375-17.625T201-180v-570h-41v-60h188v-30h264v30h188v60h-41v570q0 24-18 42t-42 18H261Zm438-630H261v570h438v-570ZM367-266h60v-399h-60v399Zm166 0h60v-399h-60v399ZM261-750v570-570Z"/></svg>
       </button>
-      <button class="circular-overlay-button live" id="output-angle">
+      <button class="circular-overlay-button" id="output-angle">
         -°
       </button>
       <div id="action-buttons-primary" class="live">
-        <button class="circular-overlay-button live" id="flip-camera">
+        <button class="circular-overlay-button live" id="flip-camera" title="use other camera">
           <svg xmlns="http://www.w3.org/2000/svg" height="48" viewBox="0 -960 960 960" width="48"><path d="M480-233q85 0 141.5-62T683-443l38 38 36-35-100-99-99 99 36 35 40-40q-6 66-48.5 114T480-283q-14 0-27.5-2t-25.5-8l-37 36q20 12 43 18t47 6ZM305-334l99-99-36-35-40 40q6-66 48.5-114T482-590q14 0 27.5 2t25.5 8l37-36q-20-12-43-18t-47-6q-85 0-141.5 62T279-430l-38-38-36 35 100 99ZM140-120q-24 0-42-18t-18-42v-513q0-23 18-41.5t42-18.5h147l73-87h240l73 87h147q23 0 41.5 18.5T880-693v513q0 24-18.5 42T820-120H140Zm0-60h680v-513H645l-73-87H388l-73 87H140v513Zm340-257Z"/></svg>
         </button>
-         <button class="circular-overlay-button" id="delayed-snap">
+         <button class="circular-overlay-button" id="delayed-snap" title="snap after 3s">
           <svg xmlns="http://www.w3.org/2000/svg" height="48" viewBox="0 -960 960 960" width="48"><path d="M363-280h184q26 0 43-17t17-43v-56q0-23-8-38.5T574-450q17 0 25-16t8-39v-39q0-26-17-43t-43-17H363v60h184v64h-99v60h99v80H363v60Zm-3-580v-60h240v60H360ZM480-81q-74 0-139.5-28.5T226-187q-49-49-77.5-114.5T120-441q0-74 28.5-139.5T226-695q49-49 114.5-77.5T480-801q67 0 126 22.5T711-716l51-51 42 42-51 51q36 40 61.5 97T840-441q0 74-28.5 139.5T734-187q-49 49-114.5 77.5T480-81Zm0-60q125 0 212.5-87.5T780-441q0-125-87.5-212.5T480-741q-125 0-212.5 87.5T180-441q0 125 87.5 212.5T480-141Z"/></svg>
         </button>
         <button id="side-selector-button" class="circular-overlay-button">
@@ -559,7 +567,7 @@ limitations under the License. #14DDB9
       <button class="circular-overlay-button live" id="save" disabled>SAVE</button>
       <div id="history" class="circular-overlay-button" title="history">
         <div class="select-wrapper">
-          <select id="history-selector"></select>
+          <select title="review previous snapshots" id="history-selector"></select>
         </div>
       </div>
       <section id="intro-placeholder">

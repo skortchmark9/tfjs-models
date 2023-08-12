@@ -219,6 +219,11 @@ function getDisplayAngle() {
 function drawScores(pose) {
   const pts = getKneePoints(pose?.keypoints);
   const outputAngle = document.getElementById('output-angle');
+  const wrapper = document.querySelector('.canvas-wrapper')
+  if (wrapper.classList.contains('viewing-snapshot')) {
+    return;
+  }
+
   if (outputAngle.innerText !== '—°') {
     outputAngle.innerText = `—°`;
   }
@@ -424,7 +429,7 @@ async function app() {
       document.querySelector('.canvas-wrapper').classList.add('has-flip');
     });
   } else {
-    document.querySelector('.canvas-wrapper').classList.add('has-flip');
+    // document.querySelector('.canvas-wrapper').classList.add('has-flip');
   }
 
   console.time('time to first framez');
@@ -487,6 +492,7 @@ function displayHistory() {
   select.addEventListener('change', (evt) => {
     const { selectedIndex } = evt.target.options;
     const img = document.getElementById('preview-image');
+
     // Special case - resume video
     if (selectedIndex === 0) {
       placeholder.innerText = `View Snapshots - Record: ${max}°`;
@@ -503,6 +509,9 @@ function displayHistory() {
     placeholder.removeAttribute('disabled');
 
     KneeStorage.getImage(entry).then((src) => {
+      const outputAngle = document.getElementById('output-angle');
+      outputAngle.innerText = `${entry.displayAngle}°`;
+
       wrapper.classList.add('viewing-snapshot');
       img.src = src
     });
