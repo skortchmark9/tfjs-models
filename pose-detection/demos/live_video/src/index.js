@@ -409,7 +409,10 @@ async function app() {
 
   deleteBtn.addEventListener('click', () => {
     const { selectedIndex } = document.getElementById('history-selector');
-    const updated = KneeStorage.deleteEntry(selectedIndex - 1);
+    const entries = KneeStorage.getEntries();
+    entries.reverse();
+    const entry = entries[selectedIndex - 1];
+    KneeStorage.deleteEntry(entry);
     displayHistory();
 
     const img = document.getElementById('preview-image');

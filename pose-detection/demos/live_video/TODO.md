@@ -13,11 +13,14 @@ X storage?
 X flip camera
 X make banner which goes away
 X make UI nice
+X pwa
+X save feedback / animation
+* portrait mode trash in wrong place
+* score top left always
+* delete indexing issue
 * tune model to be better?
   - 3d model would be better prolly
-* pwa
 * "adjust"
 * svg angles
 * opacity slider for previews
 
-// save feedback / animation

@@ -1,4 +1,4 @@
-import { get, set } from 'idb-keyval';
+import { get, set, del } from 'idb-keyval';
 /**
  * {
  *     image,
@@ -34,11 +34,12 @@ export function put(entry) {
   return key;
 }
 
-export function deleteEntry(index) {
-  const db = getEntries();
-  const entry = db[index];
-  localStorage.removeItem(getKey(entry));
-  db.splice(index, 1);
+export function deleteEntry(entry) {
+  let db = getEntries();
+  const key = getKey(entry);
+
+  db = db.filter((e) => getKey(e) !== key);
+  del(key);
 
   localStorage.setItem('db', JSON.stringify(db));
   return db;
