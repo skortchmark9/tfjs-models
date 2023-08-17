@@ -21,6 +21,7 @@ limitations under the License. #14DDB9
   <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="mask-icon" href="safari-pinned-tab.svg" color="#14DDB9">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <meta name="apple-mobile-web-app-title" content="Flexion Friend">
   <meta name="application-name" content="Flexion Friend">
   <meta name="msapplication-TileColor" content="#00aba9">
@@ -30,6 +31,16 @@ limitations under the License. #14DDB9
       --ff-theme-color: #222222;
       --ff-logo-color: #14DDB9;
       background-color: var(--ff-theme-color);
+    }
+
+    /* latin */
+    @font-face {
+      font-family: 'Barlow';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/barlow/v12/7cHqv4kjgoGqM7E3_-gs51ostz0rdg.woff2) format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
     }
 
     a, h2 {
@@ -46,7 +57,7 @@ limitations under the License. #14DDB9
       --ff-padding-medium: 20px;
       --ff-padding-large: 40px;
       font-size: larger;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-family: 'Barlow', sans-serif;
     }
 
     button {
@@ -151,6 +162,33 @@ limitations under the License. #14DDB9
       left: 0;
     }
 
+    #begin {
+      font-size: 1em;
+      line-height: 1em;
+      cursor: pointer;
+      flex-shrink: 0;
+      padding: var(--ff-padding-small);
+      background: none;
+      border: none;
+      background-color: var(--ff-logo-color);
+      color: var(--ff-theme-color);
+      border-radius: 4px;
+      margin-top: auto;
+    }
+
+    #placeholder-scroll {
+      min-height: 0;
+      overflow: auto;
+      margin-bottom: var(--ff-padding-small);
+    }
+
+    #demo-image {
+      padding: var(--ff-padding-small);
+      padding-top: 0;
+      width: 50%;
+      float: left
+    }
+
     #output-angle {
       position: absolute;
     }
@@ -180,9 +218,9 @@ limitations under the License. #14DDB9
       pointer-events: none;
     }
 
-    .has-flip.has-video #flip-camera {
-      opacity: 1;
-      pointer-events: all;
+    .canvas-wrapper:not(.has-flip) #flip-camera {
+      opacity: 0;
+      pointer-events: none;
     }
 
     .viewing-snapshot #flip-camera.live {
@@ -214,7 +252,6 @@ limitations under the License. #14DDB9
     }
 
     #save {
-      font-weight: bolder;
       position: absolute;
       border-radius: 20px;
       width: 200px;
@@ -237,8 +274,10 @@ limitations under the License. #14DDB9
       width: 100%;
       height: 100%;
       color: #ccc;
-      padding: var(--ff-padding-large);
+      padding: var(--ff-padding-small) var(--ff-padding-large);
       background: var(--ff-theme-color);
+      display: flex;
+      flex-direction: column;
     }
 
     .fadeout {
@@ -254,6 +293,10 @@ limitations under the License. #14DDB9
       justify-content: space-between;
     }
 
+    #delete-snap {
+      bottom: var(--ff-padding-small);
+      right: 0;
+    }
 
     @media screen and (orientation:portrait) {
       #action-buttons-primary {
@@ -262,14 +305,18 @@ limitations under the License. #14DDB9
         flex-direction: row;
       }
 
-      #output-angle {
-        top: 0;
-        right: 0;
+      #demo-image {
+        width: 100%;
       }
 
-      #delete-snap {
+      #output-angle {
         top: 0;
+        left: 0;
+      }
+
+      #history {
         right: 0;
+        top: var(--ff-padding-small);
       }
 
       #save {
@@ -283,15 +330,14 @@ limitations under the License. #14DDB9
       }
 
       #output-angle {
-        bottom: var(--ff-padding-small);
+        top : var(--ff-padding-small);
         left: 0;
       }
 
-      #delete-snap {
-        top: var(--ff-padding-small);
-        right: 0;
+      #history {
+        left: 0;
+        bottom: var(--ff-padding-small);
       }
-
     }
 
     #scatter-gl-container {
@@ -344,8 +390,6 @@ limitations under the License. #14DDB9
     #history {
       display: none;
       position: absolute;
-      top: 0;
-      left: 0;
     }
 
     .select-wrapper {
@@ -549,13 +593,13 @@ limitations under the License. #14DDB9
         -°
       </button>
       <div id="action-buttons-primary" class="live">
-        <button class="circular-overlay-button live" id="flip-camera" title="use other camera">
+        <button class="circular-overlay-button" id="flip-camera" title="use other camera">
           <svg xmlns="http://www.w3.org/2000/svg" height="48" viewBox="0 -960 960 960" width="48"><path d="M480-233q85 0 141.5-62T683-443l38 38 36-35-100-99-99 99 36 35 40-40q-6 66-48.5 114T480-283q-14 0-27.5-2t-25.5-8l-37 36q20 12 43 18t47 6ZM305-334l99-99-36-35-40 40q6-66 48.5-114T482-590q14 0 27.5 2t25.5 8l37-36q-20-12-43-18t-47-6q-85 0-141.5 62T279-430l-38-38-36 35 100 99ZM140-120q-24 0-42-18t-18-42v-513q0-23 18-41.5t42-18.5h147l73-87h240l73 87h147q23 0 41.5 18.5T880-693v513q0 24-18.5 42T820-120H140Zm0-60h680v-513H645l-73-87H388l-73 87H140v513Zm340-257Z"/></svg>
         </button>
          <button class="circular-overlay-button" id="delayed-snap" title="snap after 3s">
           <svg xmlns="http://www.w3.org/2000/svg" height="48" viewBox="0 -960 960 960" width="48"><path d="M363-280h184q26 0 43-17t17-43v-56q0-23-8-38.5T574-450q17 0 25-16t8-39v-39q0-26-17-43t-43-17H363v60h184v64h-99v60h99v80H363v60Zm-3-580v-60h240v60H360ZM480-81q-74 0-139.5-28.5T226-187q-49-49-77.5-114.5T120-441q0-74 28.5-139.5T226-695q49-49 114.5-77.5T480-801q67 0 126 22.5T711-716l51-51 42 42-51 51q36 40 61.5 97T840-441q0 74-28.5 139.5T734-187q-49 49-114.5 77.5T480-81Zm0-60q125 0 212.5-87.5T780-441q0-125-87.5-212.5T480-741q-125 0-212.5 87.5T180-441q0 125 87.5 212.5T480-141Z"/></svg>
         </button>
-        <button id="side-selector-button" class="circular-overlay-button">
+        <button id="side-selector-button" class="circular-overlay-button" title="change side">
           <div class="side-selector">
             <label id="toggle-l" for="side-selector-checkbox">L</label>
             <input type="checkbox" name="side-selector-checkbox" id="side-selector-checkbox">
@@ -571,14 +615,22 @@ limitations under the License. #14DDB9
         </div>
       </div>
       <section id="intro-placeholder">
-        <header>
-          <h2>Flexion Friend</h2>
-        </header>
-        <p>Let's see that knee bend, friend! I'll use <a
-            target="_blank"
-            href="https://www.tensorflow.org/hub/tutorials/movenet">Movenet</a> to record your best angles.</p>
-        <br>
-        <p id="help-text">Once your knee angle is detected, tap the screen to save your progress.</p>
+        <div id="placeholder-scroll">
+          <header>
+            <h2>Flexion Friend</h2>
+          </header>
+          <p>Let's see that knee bend, friend! I'll use <a
+              target="_blank"
+              href="https://www.tensorflow.org/hub/tutorials/movenet">Movenet</a> to record your best angles.</p>
+          <img id="demo-image" src="screenshot.png">
+          <p id="help-text">
+            Once your knee angle is detected, tap the screen to save your progress.
+          </p>
+          <p>
+            For a full-screen experience, add to your home screen.
+          </p>
+        </div>
+        <button id="begin" disabled>Loading...</button>
       </section>
       <video id="video" playsinline style="
         -webkit-transform: scaleX(-1);

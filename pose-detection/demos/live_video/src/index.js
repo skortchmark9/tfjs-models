@@ -259,13 +259,6 @@ async function app() {
     urlParams.set('model', 'movenet');
   }
 
-  const sideCheckbox = document.getElementById('side-selector-checkbox');
-  sideCheckbox.checked = getSelection() === KNEE_SELECTION.RIGHT;
-  sideCheckbox.addEventListener('change', (evt) => {
-    selectKnee(sideCheckbox.checked ? KNEE_SELECTION.RIGHT : KNEE_SELECTION.LEFT);
-    return;
-  });
-
   displayHistory();
 
   initDefaultValueMap();
@@ -274,12 +267,14 @@ async function app() {
   const isWebGPU = STATE.backend === 'tfjs-webgpu';
   const importVideo = (urlParams.get('importVideo') === 'true') && isWebGPU;
 
-  try {
-    camera = await Camera.setup(STATE.camera);
-  } catch (e) {
-    document.getElementById('help-text').innerText = 'Flexion Friend requires access to the camera to work.';
+  camera = await Camera.setup(STATE.camera);
+
+  const sideCheckbox = document.getElementById('side-selector-checkbox');
+  sideCheckbox.checked = getSelection() === KNEE_SELECTION.RIGHT;
+  sideCheckbox.addEventListener('change', (evt) => {
+    selectKnee(sideCheckbox.checked ? KNEE_SELECTION.RIGHT : KNEE_SELECTION.LEFT);
     return;
-  }
+  });
 
 
   await setBackendAndEnvFlags(STATE.flags, STATE.backend);
@@ -391,14 +386,16 @@ async function app() {
     saveBtn.innerText = 'SAVED!';
 
     const leg = document.getElementById('leg-emoji');
+    const bl = 'translate(0vw, 70vh)';
+    const tr = 'translate(80vw, 0vh)';
     leg.animate([{
       'opacity': 1,
       'transform': 'translate(50vw, 70vh)'
     }, {
       'opacity': 0,
-      'transform': 'translate(0, 0)'
+      'transform': isLandscape() ? bl : tr
     }], {
-      duration: 500,
+      duration: 400,
       easing: 'cubic-bezier(0.42, 0, 0.58, 1)',
     }).finished.then(() => {
       saveBtn.setAttribute('disabled', '')
@@ -440,11 +437,6 @@ async function app() {
   console.timeEnd('time to first framez');
 
   document.querySelector('.canvas-wrapper').classList.add('has-video');
-
-  setTimeout(() => {
-    document.getElementById('intro-placeholder').classList.add('fadeout');
-  }, Math.max(0, 3000 - performance.now()));
-
 
   // Listen for orientation changes
   let wasLandscape = isLandscape();
@@ -524,7 +516,37 @@ function displayHistory() {
   wrapper.classList.add('has-history');
 }
 
-app();
+async function go() {
+  let init = false;
+  const begin = document.getElementById('begin');
+  while (!init) {
+    try {
+      console.log('app!!');
+      await app();
+      init = true;
+      begin.addEventListener('click', () => {
+        document.getElementById('intro-placeholder').classList.add('fadeout');
+      });
+      begin.innerText = "Ready!";
+      begin.removeAttribute('disabled');
+    } catch (e) {
+      console.error(e);
+      begin.removeAttribute('disabled');
+      begin.innerText = 'Flexion Friend requires access to the camera. Try again?';
+
+      await new Promise((resolve) => {
+        begin.addEventListener('click', () => {
+          resolve();
+          begin.setAttribute('disabled', '');
+          begin.innerText = 'Loading...';
+        }, { once: true })
+      });
+    }
+  }
+}
+
+go();
+
 
 if (useGpuRenderer) {
   renderer.dispose();

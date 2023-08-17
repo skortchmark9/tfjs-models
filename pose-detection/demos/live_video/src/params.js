@@ -49,7 +49,7 @@ export const MOVENET_CONFIG = {
 };
 
 export const STATE = {
-  camera: { targetFPS: 60, sizeOption: '640 X 480', facingMode: 'user' },
+  camera: { targetFPS: 30, sizeOption: '640 X 480', facingMode: 'user' },
   backend: 'tfjs-webgl',
   flags: {},
   modelConfig: { ...MOVENET_CONFIG },

@@ -18,16 +18,9 @@ import * as posedetection from '@tensorflow-models/pose-detection';
 import * as scatter from 'scatter-gl';
 
 import * as params from './params';
-import { getKneePoints, getAngle2 } from './knee';
+import { getKneePoints, getAngle2, calculateDistance } from './knee';
 // import { demoData } from './demo_data';
 
-
-// Function to calculate the Euclidean distance between two points
-function calculateDistance(x1, y1, x2, y2) {
-  const dx = x2 - x1;
-  const dy = y2 - y1;
-  return Math.sqrt(dx * dx + dy * dy);
-}
 // These anchor points allow the pose pointcloud to resize according to its
 // position in the input.
 const ANCHOR_POINTS = [[0, 0, 0], [0, 1, 0], [-1, 0, 0], [-1, -1, 0]];

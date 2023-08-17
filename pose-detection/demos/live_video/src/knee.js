@@ -44,29 +44,35 @@ export function getKneePoints(keypoints) {
   const right_angle = getAngle3Deg(...right_knee_points);
   right_knee_points = fmt(right_knee_points);
 
-  const threshold = STATE.modelConfig.scoreThreshold * 3.5;
-  if (_state_.selection === KNEE_SELECTION.RIGHT) {
-    return right_score > threshold ? right_knee_points : undefined;
-  }
+  const threshold = STATE.modelConfig.scoreThreshold * 1.5;
+
+  let pts = right_knee_points;
+  let score = right_score;
+  let angle = right_angle;
   if (_state_.selection === KNEE_SELECTION.LEFT) {
-    return left_score > threshold ? left_knee_points : undefined;
+    pts = left_knee_points;
+    score = left_score;
+    angle = left_angle;
   };
 
-  // Auto mode
-  // If both knees are well tracked, use the more obviously bent one,
-  // Expected values are ~ -10deg to 150deg, so let's find the one closest
-  // to the middle of that range: 70.
-  if (left_score > threshold && right_score > threshold) {
-    return (Math.abs(70 - left_angle) < Math.abs(70 - right_angle)) ?
-      left_knee_points :
-      right_knee_points;
-  } else if (left_score > threshold) {
-    return left_knee_points;
-  } else if (right_score > threshold) {
-    return right_knee_points;
-  } else {
-    // None above threshold
-    return;
+  // Not a legit angle.
+  if ((180 - angle) > 170) {
+    return undefined;
+  }
+
+  const d1 = calculateDistance(pts[0].x, pts[0].y, pts[1].x, pts[1].y);
+  const d2 = calculateDistance(pts[1].x, pts[1].y, pts[2].x, pts[2].y);
+  // The calculated distances between the hip-knee and the knee-ankle should be
+  // similar. If one is substantially smaller, it's probably combining points, so
+  // throw it out.
+  const distanceThreshold = .2;
+
+  if (Math.min(d2, d1) / Math.max(d2, d1) < distanceThreshold) {
+    return undefined;
+  }
+
+  if (score > threshold) {
+    return pts;
   }
 }
 
@@ -99,4 +105,11 @@ function getAngle3(point1, point2, point3) {
 
 export function getAngle3Deg(p1, p2, p3) {
   return getAngle3(p1, p2, p3) * RAD_TO_DEG;
+}
+
+// Function to calculate the Euclidean distance between two points
+export function calculateDistance(x1, y1, x2, y2) {
+  const dx = x2 - x1;
+  const dy = y2 - y1;
+  return Math.sqrt(dx * dx + dy * dy);
 }
