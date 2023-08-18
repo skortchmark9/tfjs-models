@@ -426,10 +426,7 @@ async function app() {
       const facingMode = STATE.camera.facingMode === 'user' ? 'environment' : 'user';
       STATE.camera.facingMode = facingMode;
       STATE.isSizeOptionChanged = true;
-      document.querySelector('.canvas-wrapper').classList.add('has-flip');
     });
-  } else {
-    // document.querySelector('.canvas-wrapper').classList.add('has-flip');
   }
 
   console.time('time to first framez');
