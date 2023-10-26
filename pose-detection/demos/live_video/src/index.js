@@ -513,6 +513,23 @@ function displayHistory() {
   wrapper.classList.add('has-history');
 }
 
+const errorStack = [];
+document.addEventListener('error', errorHandler);
+
+function errorHandler(error) {
+  errorStack.push(error);
+  document.getElementById('error-display-text').innerText = errorStack.join('\n');
+}
+
+document.getElementById('error-display-close').addEventListener('click', () => {
+  document.getElementById('error-display').style.display = 'none';
+});
+
+document.getElementById('display-error-btn').addEventListener('click', () => {
+  document.getElementById('error-display').style.display = 'flex';
+});
+
+
 async function go() {
   let init = false;
   const begin = document.getElementById('begin');
@@ -528,6 +545,8 @@ async function go() {
       begin.removeAttribute('disabled');
     } catch (e) {
       console.error(e);
+      errorHandler(e.toString());
+      document.getElementById('display-error-btn').style.display = 'block';
       begin.removeAttribute('disabled');
       begin.innerText = 'Flexion Friend requires access to the camera. Try again?';
 

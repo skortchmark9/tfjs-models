@@ -15,9 +15,9 @@ X make banner which goes away
 X make UI nice
 X pwa
 X save feedback / animation
-* portrait mode trash in wrong place
-* score top left always
-* delete indexing issue
+X portrait mode trash in wrong place
+X score top left always
+X delete indexing issue
 * tune model to be better?
   - 3d model would be better prolly
 * "adjust"

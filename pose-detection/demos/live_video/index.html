@@ -30,6 +30,7 @@ limitations under the License. #14DDB9
     body {
       --ff-theme-color: #222222;
       --ff-logo-color: #14DDB9;
+      --ff-error-color: #f48383;
       background-color: var(--ff-theme-color);
     }
 
@@ -111,6 +112,27 @@ limitations under the License. #14DDB9
       margin: 0;
     }
 
+    #error-display {
+      color: #ccc;
+      position: absolute;
+      display: none;
+      flex-direction: column;
+      top: 0;
+      left: 0;
+      padding: var(--ff-padding-medium);
+      height: 100%;
+      width: 100%;
+      background: var(--ff-theme-color);
+      z-index: 1;
+    }
+
+    #error-display-text {
+      flex-grow: 1;
+      margin: var(--ff-padding-medium);
+      white-space: break-spaces;
+      border: 1px solid red;
+    }
+
     .controls {
       display: grid;
       gap: 0.5em;
@@ -162,19 +184,32 @@ limitations under the License. #14DDB9
       left: 0;
     }
 
-    #begin {
+
+    #intro-buttons {
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      margin-top: auto;
+      margin-bottom: var(--ff-padding-small);
+      gap: var(--ff-padding-small);
+
+    }
+
+    .intro-button {
       font-size: 1em;
       line-height: 1em;
       cursor: pointer;
-      flex-shrink: 0;
       padding: var(--ff-padding-small);
       background: none;
       border: none;
       background-color: var(--ff-logo-color);
       color: var(--ff-theme-color);
       border-radius: 4px;
-      margin-top: auto;
-      margin-bottom: var(--ff-padding-small);
+    }
+
+    #display-error-btn {
+      display: none;
+      background-color: var(--ff-error-color);
     }
 
     #placeholder-scroll {
@@ -578,6 +613,13 @@ limitations under the License. #14DDB9
   <div id="stats">
   </div>
   <div id="main">
+    <div id="error-display">
+      <p>Oops! Send a screenshot of this to Sam</p>
+      <pre id="error-display-text">
+
+      </pre>
+      <button class="intro-button" id="error-display-close">Close</button>
+    </div>
     <div class="canvas-wrapper">
       <canvas id="output"></canvas>
       <img id="preview-image"></img>
@@ -626,7 +668,10 @@ limitations under the License. #14DDB9
             For a full-screen experience, add to your home screen.
           </p>
         </div>
-        <button id="begin" disabled>Loading...</button>
+        <div id="intro-buttons">
+          <button class="intro-button" id="display-error-btn">Show Error</button>
+          <button class="intro-button" id="begin" disabled>Loading...</button>
+        </div>
       </section>
       <video id="video" playsinline style="
         -webkit-transform: scaleX(-1);
