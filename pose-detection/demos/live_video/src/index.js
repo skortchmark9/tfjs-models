@@ -437,14 +437,13 @@ async function app() {
 
   // Listen for orientation changes
   let wasLandscape = isLandscape();
-  screen.orientation.addEventListener('change', function () {
+  window.matchMedia("(orientation: portrait)").addEventListener("change", e => {
     // Announce the new orientation number
     setTimeout(() => {
       STATE.isSizeOptionChanged = isLandscape() !== wasLandscape;
-
       wasLandscape = isLandscape();
     }, 150);
-  }, false);
+  });
 };
 
 function displayHistory() {

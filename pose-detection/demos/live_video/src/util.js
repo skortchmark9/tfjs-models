@@ -23,7 +23,10 @@ export function isiOS() {
 }
 
 export function isLandscape() {
-  return screen.orientation.type.startsWith('landscape');
+  const portrait = window.matchMedia("(orientation: portrait)").matches;
+  return !portrait;
+  // didn't work on some iphones.
+  // return screen.orientation.type.startsWith('landscape');
 }
 
 export function isAndroid() {

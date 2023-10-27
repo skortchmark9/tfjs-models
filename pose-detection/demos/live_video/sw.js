@@ -1,4 +1,4 @@
-const VERSION = "v8";
+const VERSION = "v9";
 const CACHE_NAME = `flexion-friend-${VERSION}`;
 
 // const APP_STATIC_RESOURCES = [
